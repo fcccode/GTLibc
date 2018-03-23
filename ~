@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include <windows.h>
+
+#define isKeysPressed(...) hotKeysPressed(__VA_ARGS__, NULL)
+bool hotKeysPressed(int,...);
+
+/*Keys event proc here*/
+
+bool hotKeysPressed(int key, ...)
+{
+	short result;
+	va_list list;
+
+	result = GetAsyncKeyState(key);
+	for (va_start(list, key); key; key = va_arg(list, int))
+		result &= GetAsyncKeyState(key);
+
+	va_end(list);
+
+	return ((result & 0x8000) != 0);
+}
+
+int main(int argc, char *argv[])
+{
+	while(1){
+		if(hotKeysPressed(VK_LCONTROL,VK_LSHIFT))
+		MessageBox(NULL,"Hot key pressed","INFO",MB_ICONINFORMATION);
+	}		
+	return 0;
+}

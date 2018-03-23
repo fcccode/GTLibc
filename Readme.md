@@ -1,4 +1,6 @@
-**_GTLibc_** library is **[Game Trainer](https://en.wikipedia.org/wiki/Trainer_(games)) library for _c/c++ in windows_** it provides all the necessary methods to make simple game trainer in
+![cover_logo](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/cover_logo.jpg?raw=true "")
+
+**_GTLibc_** is **[Game Trainer](https://en.wikipedia.org/wiki/Trainer_(games)) library for _c/c++ in windows_** it provides all the necessary methods to make simple game trainer in
 windows using **WIN32-API** with ease.
 It uses only **WIN32-API** methods instead of **CRT** method because this is intended to work on **Windows** system only
 and not shall be portable or to target other OS like **_Linux_,_MAC OS_** etc.
@@ -111,8 +113,7 @@ or if you want to **disable** logs again you can use **disableLogs()** method.
 # Trainer Demo :
 As a demo of this library GTA-SA Trainer is included to show demo of all the methods needed and how to use them in making simple game trainer.
 
-[Video Demo of GTLibc](https://youtu.be/cRCnN987gd8)
-
+[![GTLibc Demo](https://img.youtube.com/vi/cRCnN987gd8/0.jpg)](https://www.youtube.com/watch?v=cRCnN987gd8)
 
 **DOCUMENTATION INFO :**
 All Public and Semi-Private methods are well documented.

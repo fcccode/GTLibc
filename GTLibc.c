@@ -18,7 +18,7 @@ HANDLE findGameProcess(LPCSTR game_name)
 {
     private_field = TRUE;
     SetLastError(NO_ERROR);
-	
+
     try
     {
         PROCESSENTRY32 entry;
@@ -47,10 +47,10 @@ HANDLE findGameProcess(LPCSTR game_name)
 
         if (process_list == NULL)
         {
-            if(logs_enabled)
+            if (logs_enabled)
             {
-                addLog("%s->process_list -> Memory Error : %s\n",FUNC_NAME,strerror(errno));
-                addLog("%s->process_list address : 0x%X\n",FUNC_NAME,process_list);
+                addLog("%s->process_list -> Memory Error : %s\n", FUNC_NAME, strerror(errno));
+                addLog("%s->process_list address : 0x%X\n", FUNC_NAME, process_list);
                 private_field = TRUE;
             }
 
@@ -126,13 +126,12 @@ HANDLE findGameProcess(LPCSTR game_name)
 
                 if (p_list == NULL)
                 {
-                    if(logs_enabled)
+                    if (logs_enabled)
                     {
-                        addLog("%s->p_list -> Memory Error : %s\n",FUNC_NAME,strerror(errno));
-                        addLog("%s->p_list address : 0x%X\n",FUNC_NAME,p_list);
+                        addLog("%s->p_list -> Memory Error : %s\n", FUNC_NAME, strerror(errno));
+                        addLog("%s->p_list address : 0x%X\n", FUNC_NAME, p_list);
                         private_field = TRUE;
                     }
-
 
                     if (!HeapFree(GetProcessHeap(), NIL, process_list))
                     {
@@ -166,9 +165,9 @@ HANDLE findGameProcess(LPCSTR game_name)
             }
             else
             {
-                if(logs_enabled)
+                if (logs_enabled)
                 {
-                    addLog("%s->%s\n", FUNC_NAME,"process_list is empty");
+                    addLog("%s->%s\n", FUNC_NAME, "process_list is empty");
                     private_field = TRUE;
                 }
 
@@ -197,7 +196,7 @@ HANDLE findGameProcess(LPCSTR game_name)
 
                 p_hwnd = getGameHWND();
 
-                if(logs_enabled)
+                if (logs_enabled)
                 {
                     addLog("Game \tname %s\tid : %u\tHandle : 0x%X\tHWND : 0x%X\t", p_name, p_id, p_handle, p_hwnd);
                     private_field = TRUE;
@@ -238,7 +237,7 @@ HANDLE findGameProcess(LPCSTR game_name)
                     p_handle = ptr_process_list[index].process_handle;
 
                     //add multi games to LOG and format to buffer.
-                    if(logs_enabled)
+                    if (logs_enabled)
                     {
                         addLog("Process\tname %s\tid : %u\tHandle : 0x%X\n", p_name, p_id, p_handle);
                         private_field = TRUE;
@@ -314,7 +313,7 @@ HANDLE findGameProcess(LPCSTR game_name)
 
                 DWORD exit_code;
                 GetExitCodeProcess(GetCurrentProcess(), &exit_code);
-                if(logs_enabled)
+                if (logs_enabled)
                 {
                     addLog("Process exited with exit code : %u\n", exit_code);
                 }
@@ -391,20 +390,19 @@ DWORD readAddress(LPVOID address)
     {
         if (game_handle == NULL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
 
         else
         {
-            if(!ReadProcessMemory(game_handle,address,&value, sizeof(value),NULL))
+            if (!ReadProcessMemory(game_handle, address, &value, sizeof(value), NULL))
             {
-                if(ERROR_INVALID)
+                if (ERROR_INVALID)
                     error_code = GetLastError();
                 throw(error_code);
             }
-
         }
     }
     catch (error_code)
@@ -421,7 +419,7 @@ DWORD readAddress(LPVOID address)
  * @return - If write is succeeded then it returns TRUE otherwise exits the application with error code.
  */
 
-BOOL writeAddress(LPVOID address,DWORD value)
+BOOL writeAddress(LPVOID address, DWORD value)
 {
     private_field = TRUE;
     HANDLE game_handle = getGameHandle();
@@ -432,25 +430,24 @@ BOOL writeAddress(LPVOID address,DWORD value)
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
 
         else
         {
-            if(!(write_status =  WriteProcessMemory(game_handle,address, &value, sizeof(value), NULL)))
+            if (!(write_status = WriteProcessMemory(game_handle, address, &value, sizeof(value), NULL)))
             {
-                if(!write_status)
+                if (!write_status)
                 {
-                    if(ERROR_INVALID)
+                    if (ERROR_INVALID)
                     {
                         error_code = GetLastError();
                         throw(error_code);
                     }
                 }
             }
-
         }
     }
     catch (error_code)
@@ -461,7 +458,6 @@ BOOL writeAddress(LPVOID address,DWORD value)
     return write_status;
 }
 
-
 /**
  * @description - Read value from provided address with offset.
  * @param - Address in void* format and offset in DWORD format.
@@ -471,8 +467,35 @@ BOOL writeAddress(LPVOID address,DWORD value)
 DWORD readAddressOffset(LPVOID lp_address, DWORD dw_offset)
 {
     private_field = TRUE;
+    error_code = NIL;
+
+    HANDLE game_handle = getGameHandle();
     DWORD dw_value = NIL;
-    dw_value = (DWORD)readPointerOffset(lp_address,dw_offset);
+
+    LPDWORD lpdw_address = (LPDWORD)lp_address;
+    DWORD dw_address = (DWORD)lpdw_address;
+
+    try
+    {
+        if (game_handle == NIL)
+        {
+            if (ERROR_INVALID)
+            {
+                error_code = GetLastError();
+                throw(error_code);
+            }
+        }
+
+        else
+        {
+            lpdw_address = (LPDWORD)(dw_address + dw_offset);
+            dw_value = readAddress((LPVOID)lpdw_address);
+        }
+    }
+    catch (error_code)
+    {
+        showError(error_code, FUNC_NAME, LINE_NO);
+    }
     private_field = FALSE;
     return dw_value;
 }
@@ -497,7 +520,7 @@ BOOL writeAddressOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
             {
                 error_code = GetLastError();
                 throw(error_code);
@@ -507,11 +530,11 @@ BOOL writeAddressOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
         else
         {
             lpdw_address = (LPDWORD)(dw_address + dw_offset);
-            write_status = writeAddress((LPVOID)lpdw_address,dw_value);
+            write_status = writeAddress((LPVOID)lpdw_address, dw_value);
 
-            if(!write_status)
+            if (!write_status)
             {
-                if(ERROR_INVALID)
+                if (ERROR_INVALID)
                     error_code = GetLastError();
                 throw(error_code);
             }
@@ -533,33 +556,33 @@ BOOL writeAddressOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
  * PS : FREE this memory after using it to avoid memory leaks use HeapFree() Method from (windows.h).
  */
 
-DWORD* readAddressOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets)
+DWORD *readAddressOffsets(LPVOID lp_address, DWORD *dw_offsets, SIZE_T sz_offsets)
 {
     private_field = TRUE;
     error_code = NIL;
 
     HANDLE game_handle = getGameHandle();
     UINT index = NIL;
-    DWORD *dw_values = (DWORD*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,sz_offsets);
+    DWORD *dw_values = (DWORD *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sz_offsets);
 
     try
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
             {
                 error_code = GetLastError();
                 throw(error_code);
             }
         }
 
-        else if(dw_values == NULL)
+        else if (dw_values == NULL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
             {
-                if(logs_enabled)
+                if (logs_enabled)
                 {
-                    addLog("%s->%s\n",FUNC_NAME,"offset_values is empty");
+                    addLog("%s->%s\n", FUNC_NAME, "offset_values is empty");
                 }
                 error_code = GetLastError();
                 throw(error_code);
@@ -568,16 +591,9 @@ DWORD* readAddressOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets
 
         else
         {
-            for (index = 0; index < sz_offsets/sizeof(DWORD); index++)
+            for (index = 0; index < sz_offsets / sizeof(DWORD); index++)
             {
-                dw_values[index] = readAddressOffset(lp_address,dw_offsets[index]);
-
-                if (dw_values[index] == NIL)
-                {
-                    if(ERROR_INVALID)
-                        error_code = GetLastError();
-                    throw(error_code);
-                }
+                dw_values[index] = readAddressOffset(lp_address, dw_offsets[index]);
             }
         }
     }
@@ -596,7 +612,7 @@ DWORD* readAddressOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets
   * NOTE : This will be useful in writing multiple values at a time like multiple ammo/clips values at Ammos/Clips offsets list.
  */
 
-BOOL writeAddressOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets,DWORD dw_value)
+BOOL writeAddressOffsets(LPVOID lp_address, DWORD *dw_offsets, SIZE_T sz_offsets, DWORD dw_value)
 {
     private_field = TRUE;
     HANDLE game_handle = getGameHandle();
@@ -608,20 +624,20 @@ BOOL writeAddressOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets,
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
         else
         {
 
-            for (index = 0; index < sz_offsets/sizeof(DWORD); index++, dw_offsets++)
+            for (index = 0; index < sz_offsets / sizeof(DWORD); index++, dw_offsets++)
             {
-                write_status = writeAddressOffset(lp_address,*dw_offsets,dw_value);
+                write_status = writeAddressOffset(lp_address, *dw_offsets, dw_value);
 
-                if(!write_status)
+                if (!write_status)
                 {
-                    if(ERROR_INVALID)
+                    if (ERROR_INVALID)
                         error_code = GetLastError();
                     throw(error_code);
                 }
@@ -635,7 +651,6 @@ BOOL writeAddressOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets,
     private_field = FALSE;
     return write_status;
 }
-
 
 /**
  * @description - Read pointer's address from provided address with offset.
@@ -657,7 +672,7 @@ LPVOID readPointerOffset(LPVOID lp_address, DWORD dw_offset)
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
@@ -669,15 +684,14 @@ LPVOID readPointerOffset(LPVOID lp_address, DWORD dw_offset)
 
             if (lp_address_value == NULL)
             {
-                if(ERROR_INVALID)
+                if (ERROR_INVALID)
                 {
                     error_code = GetLastError();
                     throw(error_code);
                 }
 
-
                 //if Error not set explicitly by readAddress.
-                else if(error_code == ERROR_SUCCESS)
+                else if (error_code == ERROR_SUCCESS)
                 {
                     error_code = ERROR_PARTIAL_COPY;
                     SetLastError(error_code);
@@ -694,14 +708,13 @@ LPVOID readPointerOffset(LPVOID lp_address, DWORD dw_offset)
     return lp_address_value;
 }
 
-
 /**
  * @description - Read pointer's address from provided address with provided offsets.
  * @param - Address in void* format, offsets in DWORD* format and size of offsets.
  * @return - If read succeeded then it returns address of pointer otherwise exits the application with error code.
  */
 
-LPVOID readPointerOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets)
+LPVOID readPointerOffsets(LPVOID lp_address, DWORD *dw_offsets, SIZE_T sz_offsets)
 {
     private_field = TRUE;
     HANDLE game_handle = getGameHandle();
@@ -714,24 +727,24 @@ LPVOID readPointerOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
         else
         {
 
-            for (index = 0; index < sz_offsets/sizeof(DWORD); index++)
+            for (index = 0; index < sz_offsets / sizeof(DWORD); index++)
             {
-                lpdw_address = (LPDWORD)readPointerOffset((LPVOID)lpdw_address,dw_offsets[index]);
+                lpdw_address = (LPDWORD)readPointerOffset((LPVOID)lpdw_address, dw_offsets[index]);
                 if (lpdw_address == NULL)
                 {
 
-                    if(ERROR_INVALID)
+                    if (ERROR_INVALID)
                         error_code = GetLastError();
 
                     //if Error not set explicitly by readAddress.
-                    else if(error_code == ERROR_SUCCESS)
+                    else if (error_code == ERROR_SUCCESS)
                     {
                         error_code = ERROR_PARTIAL_COPY;
                         SetLastError(error_code);
@@ -760,7 +773,7 @@ BOOL writePointerOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
 {
     private_field = TRUE;
     HANDLE game_handle = getGameHandle();
-    DWORD dw_base_address_value = NIL,dw_real_address = NIL;
+    DWORD dw_base_address_value = NIL, dw_real_address = NIL;
     BOOL write_status = FALSE;
     error_code = NIL;
 
@@ -768,15 +781,15 @@ BOOL writePointerOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
 
         dw_base_address_value = readAddress(lp_address);
-        if(dw_base_address_value == NIL)
+        if (dw_base_address_value == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
@@ -784,11 +797,11 @@ BOOL writePointerOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
         else
         {
             dw_real_address = dw_base_address_value + dw_offset;
-            write_status = writeAddress((LPVOID)dw_real_address,dw_value);
+            write_status = writeAddress((LPVOID)dw_real_address, dw_value);
 
-            if(!write_status)
+            if (!write_status)
             {
-                if(ERROR_INVALID)
+                if (ERROR_INVALID)
                     error_code = GetLastError();
                 throw(error_code);
             }
@@ -808,7 +821,7 @@ BOOL writePointerOffset(LPVOID lp_address, DWORD dw_offset, DWORD dw_value)
  * @return - If write succeeded then it returns TRUE otherwise exits the application with error code.
  */
 
-BOOL writePointerOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets,DWORD dw_value)
+BOOL writePointerOffsets(LPVOID lp_address, DWORD *dw_offsets, SIZE_T sz_offsets, DWORD dw_value)
 {
     private_field = TRUE;
     HANDLE game_handle = getGameHandle();
@@ -820,20 +833,20 @@ BOOL writePointerOffsets(LPVOID lp_address, DWORD *dw_offsets,SIZE_T sz_offsets,
     {
         if (game_handle == NIL)
         {
-            if(ERROR_INVALID)
+            if (ERROR_INVALID)
                 error_code = GetLastError();
             throw(error_code);
         }
         else
         {
 
-            for (index = 0; index < sz_offsets/sizeof(DWORD); index++, dw_offsets++)
+            for (index = 0; index < sz_offsets / sizeof(DWORD); index++, dw_offsets++)
             {
-                write_status = writePointerOffset(lp_address,*dw_offsets,dw_value);
+                write_status = writePointerOffset(lp_address, *dw_offsets, dw_value);
 
-                if(!write_status)
+                if (!write_status)
                 {
-                    if(ERROR_INVALID)
+                    if (ERROR_INVALID)
                         error_code = GetLastError();
                     throw(error_code);
                 }
@@ -952,7 +965,6 @@ DWORD getProcessID4mHWND(HWND g_hwnd)
                 error_code = GetLastError();
                 throw(error_code);
             }
-
         }
 
         else
@@ -994,7 +1006,7 @@ LPBYTE getGameBaseAddress(DWORD process_id)
                 error_code = GetLastError();
                 throw(error_code);
             }
-            else if(error_code == NIL)
+            else if (error_code == NIL)
             {
                 error_code = ERROR_INVALID_PARAMETER;
                 throw(error_code);
@@ -1104,20 +1116,20 @@ void doKeyPress(int key_code)
  * @param - cheat code in string format, (NULL terminated).
  */
 void setCheatCode(LPCSTR cheat_code)
-{	
+{
     UINT index = NIL;
     size_t cheat_len = lstrlen(cheat_code);
     CHAR cheat_buff[cheat_len + 1];
-	CopyMemory(cheat_buff,cheat_code,sizeof(CHAR) * cheat_len + 1);
-	
-	//convert cheat code to upper case for better mapping of characters.     
+    CopyMemory(cheat_buff, cheat_code, sizeof(CHAR) * cheat_len + 1);
+
+    //convert cheat code to upper case for better mapping of characters.
     LPCSTR lp_cheat_upper = CharUpper(cheat_buff);
-	
-	//Time delay before entering first char of cheat.
-	Sleep(200);
-	
-	//Press all the cheat keys from cheat code.
-    for(index = 0; index < cheat_len; index++)
+
+    //Time delay before entering first char of cheat.
+    Sleep(200);
+
+    //Press all the cheat keys from cheat code.
+    for (index = 0; index < cheat_len; index++)
     {
         doKeyPress(lp_cheat_upper[index]);
     }
@@ -1134,7 +1146,7 @@ void setCheatCode(LPCSTR cheat_code)
 LPSTR searchOffsetArea(LPVOID offset_base_address, const size_t offset_limit, const size_t offset_size, DWORD search)
 {
     private_field = TRUE;
-    int value = 0, offset_index = 0, offset = 0,offset_len = (offset_limit / offset_size);
+    int value = 0, offset_index = 0, offset = 0, offset_len = (offset_limit / offset_size);
     DWORD offset_base = (DWORD)offset_base_address;
     DWORD offset_address = offset_base;
     int search_list_len = offset_len * 0x40;
@@ -1152,7 +1164,6 @@ LPSTR searchOffsetArea(LPVOID offset_base_address, const size_t offset_limit, co
                 error_code = GetLastError();
                 throw(error_code);
             }
-
         }
     }
     catch (error_code)
@@ -1160,9 +1171,9 @@ LPSTR searchOffsetArea(LPVOID offset_base_address, const size_t offset_limit, co
         showError(error_code, FUNC_NAME, LINE_NO);
     }
 
-    if(logs_enabled)
+    if (logs_enabled)
     {
-        addLog("%s->Search list size is : %u\n",FUNC_NAME,sizeof(search_list));
+        addLog("%s->Search list size is : %u\n", FUNC_NAME, sizeof(search_list));
     }
 
     //copy headline status to search list.
@@ -1187,42 +1198,48 @@ LPSTR searchOffsetArea(LPVOID offset_base_address, const size_t offset_limit, co
  * @description - Enable logs in library.
  * @return - Returns true if enabled is success otherwise returns false.
  */
- 
-BOOL enableLogs(void){	
-	private_field = TRUE;	
-	BOOL enable_status = FALSE;
-	
-	if(logs_enabled == FALSE){
-		logs_enabled = TRUE;
-		enable_status = TRUE;
-	}
-	else{
-		showWarning("Logs already enabled!");
-		enable_status = FALSE;
-	}
-	private_field = FALSE;
-	return enable_status;
+
+BOOL enableLogs(void)
+{
+    private_field = TRUE;
+    BOOL enable_status = FALSE;
+
+    if (logs_enabled == FALSE)
+    {
+        logs_enabled = TRUE;
+        enable_status = TRUE;
+    }
+    else
+    {
+        showWarning("Logs already enabled!");
+        enable_status = FALSE;
+    }
+    private_field = FALSE;
+    return enable_status;
 }
 
 /**
  * @description - Disable logs in library.
  * @return - Returns true if disable is success otherwise returns false.
  */
- 
-BOOL disableLogs(void){
-	private_field = TRUE;	
-	BOOL disable_status = FALSE;
-	
-	if(logs_enabled == TRUE){
-		logs_enabled = FALSE;
-		disable_status = TRUE;
-	}
-	else{
-		showWarning("Logs already disabled!");
-		disable_status = FALSE;
-	}
-	private_field = FALSE;
-	return disable_status;
+
+BOOL disableLogs(void)
+{
+    private_field = TRUE;
+    BOOL disable_status = FALSE;
+
+    if (logs_enabled == TRUE)
+    {
+        logs_enabled = FALSE;
+        disable_status = TRUE;
+    }
+    else
+    {
+        showWarning("Logs already disabled!");
+        disable_status = FALSE;
+    }
+    private_field = FALSE;
+    return disable_status;
 }
 
 /**
@@ -1271,8 +1288,7 @@ static void showError(DWORD error_code, LPCSTR error_msg, DWORD line_no)
         do
         {
             *ptr-- = '\0';
-        }
-        while ((ptr >= sys_err_buff) && ((*ptr == '.') || (*ptr < 33)));
+        } while ((ptr >= sys_err_buff) && ((*ptr == '.') || (*ptr < 33)));
 
         //copy error from getLastError() to error buffer.
         wsprintf(err_msg_buff, "\nINFO : %s method failed!\nREASON : (%s)\nLINE. : occurred at line no. %d\n", error_msg, sys_err_buff, line_no);
@@ -1280,7 +1296,7 @@ static void showError(DWORD error_code, LPCSTR error_msg, DWORD line_no)
         //Show error and exit afterwards.
         MessageBox((HWND)NULL, err_msg_buff, "ERROR!", MB_ICONERROR);
 
-        if(logs_enabled)
+        if (logs_enabled)
         {
             addLog("Error occurred : %s\n", err_msg_buff);
             private_field = TRUE;
@@ -1289,7 +1305,7 @@ static void showError(DWORD error_code, LPCSTR error_msg, DWORD line_no)
         DWORD exit_code;
         GetExitCodeProcess(GetCurrentProcess(), &exit_code);
 
-        if(logs_enabled)
+        if (logs_enabled)
         {
             addLog("Process exited with exit code : %u\n", exit_code);
         }
@@ -1304,7 +1320,7 @@ static void showInfo(LPCSTR info_message)
     if (isPrivateField(private_field, FUNC_NAME, LINE_NO))
     {
         MessageBox((HWND)NULL, info_message, "INFO!", MB_ICONINFORMATION);
-        if(logs_enabled)
+        if (logs_enabled)
         {
             addLog("Information shown : %s\n", info_message);
         }
@@ -1316,7 +1332,7 @@ static void showWarning(LPCSTR warning_message)
     if (isPrivateField(private_field, FUNC_NAME, LINE_NO))
     {
         MessageBox((HWND)NULL, warning_message, "WARNING!", MB_ICONWARNING);
-        if(logs_enabled)
+        if (logs_enabled)
         {
             addLog("Warning shown : %s\n", warning_message);
         }
@@ -1345,7 +1361,7 @@ static void setGameName(LPCSTR g_name)
 static void setGameHWND(DWORD process_id)
 {
     if (isPrivateField(private_field, FUNC_NAME, LINE_NO))
-        EnumWindows(EnumAllWindows,(LPARAM)process_id);
+        EnumWindows(EnumAllWindows, (LPARAM)process_id);
 }
 
 /*Custom logger to add logs for trainer.*/
@@ -1353,7 +1369,7 @@ static void addLog(LPCSTR format, ...)
 {
     if (isPrivateField(private_field, FUNC_NAME, LINE_NO))
     {
-    	private_field = TRUE;
+        private_field = TRUE;
         error_code = NIL;
         int log_len = 0x400;
         char log_buf[log_len];
@@ -1405,7 +1421,7 @@ static void addLog(LPCSTR format, ...)
             }
 
             DWORD data_size = NIL;
-            if (!WriteFile(file_handle,(LPCVOID)log_buf, lstrlen(log_buf), &data_size, (LPOVERLAPPED)NULL))
+            if (!WriteFile(file_handle, (LPCVOID)log_buf, lstrlen(log_buf), &data_size, (LPOVERLAPPED)NULL))
             {
                 if (ERROR_INVALID)
                 {

@@ -26,6 +26,13 @@ From beginning of trainer development till the end, it provides all necessary me
 6)Cheat code applying tool included in this library --> use setCheatCode() method.
 7)Offset area searching tool included in this library --> use searchOffsetArea() method.
 
+***********************************************
+****Advanced components for Game Hacking.*****
+**********************************************
+
+8)Custom code injection tool included in this library --> use injectCode()/injectCodes() methods.
+9)NOP instruction Filling tool included in this library --> use writeNOP()/writeNOPs() methods.
+10)Write JMP/CALL assembly instruction --> use  writeJmpOrCall() method.
 
 NOTE : This ain't memory scanning,hooking,analyzing library, it won't provide methods for scanning/signature or dumping RAW memory.
 
@@ -45,6 +52,7 @@ Dated : 23/03/2018
 
 /*Including WIN32 libraries*/
 #define WINVER 0x0500
+#define _WIN32_WINNT 0x0403
 #include <windows.h>
 #include <tlhelp32.h>
 
@@ -66,7 +74,12 @@ Dated : 23/03/2018
 #define catch(x) ExitJmp:if(__HadError)
 #define throw(x) __HadError=TRUE;goto ExitJmp;
 
-typedef BYTE* LPBYTE;
+/*Enum to store opcode type*/
+typedef enum opcode{
+	OPCODE_SHORT_JUMP,
+	OPCODE_NEAR_JUMP,
+	OPCODE_CALL
+}opcode;
 
 /*Structure to store process information*/
 typedef struct process_hash
@@ -123,6 +136,17 @@ void setCheatCode(LPCSTR);
 
 /*Semi-private Tool for searching in offset area*/
 LPSTR searchOffsetArea(LPVOID,const size_t,const size_t,DWORD);
+
+/*Semi-private Tool for Injecting custom code*/
+BOOL injectCode(LPVOID,LPCVOID,SIZE_T);
+BOOL injectCodes(LPVOID[],LPBYTE[],SIZE_T[],SIZE_T);
+
+/*Semi-private Tool for writing assembly NOP instruction*/
+BOOL writeNOP(LPVOID,SIZE_T);
+BOOL writeNOPs(LPVOID[],SIZE_T[],SIZE_T);
+
+/*Semi-private Tool for writing assembly JMP or CALL instruction*/
+BOOL writeJmpOrCall(LPVOID,LPVOID,opcode);
 
 /*Semi private method for enabling/disabling Logs*/
 BOOL enableLogs(void);

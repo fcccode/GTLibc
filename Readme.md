@@ -100,14 +100,22 @@ or if you want to **disable** logs again you can use **disableLogs()** method.
 # Trainer Demo :
 As a demo of this library GTA-SA Trainer is included to show demo of all the methods needed and how to use them in making simple game trainer.
 
+# GTLibc Tutorial on YouTube :
 [![GTLibc Demo](https://img.youtube.com/vi/cRCnN987gd8/0.jpg)](https://www.youtube.com/watch?v=cRCnN987gd8)
 
 **DOCUMENTATION INFO :**
 All Public and Semi-Private methods are well documented.
 but private methods are not documented as it was not necessary to do so.
 
-**VERSION INFO :**
-GTLIBC Version : V 1.0.0.
+**VERSION INFO :**<br/>
+GTLIBC Version : V 1.0. Dated : 23/03/2018.<br/>
+GTLIBC Version : V 1.1. Dated : 12/04/2018.<br/>
 
-Written by HaseeB Mir (haseebmir.hm@gmail.com)
-Dated : 23/03/2018.
+**CHANGE LOGS.** <br/>
+**[+]** Added Custom **_procedure_** injection and **_shellcode_** injection methods for advanced game hacking. <br/>
+**[+]** Added Support for Microsoft's visual studio (_MSVC_ compiler) and for **Visual C/CPP**. <br/>
+**[+]** Added wrapper memory methods for better Memory management.  <br/>
+**[-]** Removed support for Multiple games found in memory. <br/>
+**[-]** Removed feature where application used to exit after showing Error. <br/>
+
+Written and maintained by HaseeB Mir (haseebmir.hm@gmail.com)

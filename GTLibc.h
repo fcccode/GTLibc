@@ -44,15 +44,28 @@ All Public and Semi-Private methods are well documented.
 but private methods are not documented as it was not necessary to do so.
 
 VERSION INFO :
-GTLIBC Version : V 1.0.0.
+GTLIBC Version : V 1.1.
+
+WHATS NEW IN THIS VERSION :
+[+] Added Custom procedure injection and shellcode injection methods for advanced game hacking.
+[+] Added Support for Microsoft's visual studio (MSVC compiler) and for Visual C/CPP.
+[+] Added wrapper memory methods for better Memory management. 
+[-] Removed support for Multiple games found in memory.
+
+
+11)Custom procedure injection tool included in this library --> use injectProc() method.
+12)Custom shellcode injection tool included in this library --> use injectShellCode() method.
+
 
 Written by HaseeB Mir (haseebmir.hm@gmail.com)
-Dated : 23/03/2018
+
+V 1.0 : Dated : 23/03/2018
+V 1.1 : Dated : 11/04/2018
 */
 
 /*Including WIN32 libraries*/
 #define WINVER 0x0500
-#define _WIN32_WINNT 0x0403
+#define _WIN32_WINNT 0x0501
 #include <windows.h>
 #include <tlhelp32.h>
 
@@ -74,22 +87,12 @@ Dated : 23/03/2018
 #define catch(x) ExitJmp:if(__HadError)
 #define throw(x) __HadError=TRUE;goto ExitJmp;
 
-/*Enum to store opcode type*/
-typedef enum opcode{
+/*Enum to store OPCODE type*/
+typedef enum OPCODE{
 	OPCODE_SHORT_JUMP,
 	OPCODE_NEAR_JUMP,
 	OPCODE_CALL
-}opcode;
-
-/*Structure to store process information*/
-typedef struct process_hash
-{
-	char process_name[MAX_PATH];
-    HANDLE process_handle;
-    HWND process_hwnd;
-    DWORD process_id;
-} process_table;
-
+}OPCODE;
 
 /****************************************************************************/
 /*********************-PUBLIC-METHODS-***************************************/
@@ -146,7 +149,13 @@ BOOL writeNOP(LPVOID,SIZE_T);
 BOOL writeNOPs(LPVOID[],SIZE_T[],SIZE_T);
 
 /*Semi-private Tool for writing assembly JMP or CALL instruction*/
-BOOL writeJmpOrCall(LPVOID,LPVOID,opcode);
+BOOL writeJmpOrCall(LPVOID,LPVOID,OPCODE,UINT);
+
+/*Semi-private Tool for injecting custom Procedure into game*/
+BOOL injectProc(LPVOID,LPCVOID,SIZE_T,UINT);
+
+/*Semi-private Tool for injecting custom shellcode into game*/
+LPVOID injectShellCode(LPCVOID,SIZE_T);
 
 /*Semi private method for enabling/disabling Logs*/
 BOOL enableLogs(void);
@@ -175,25 +184,29 @@ static LPSTR getCurrentTime(void);
 static void addLog(LPCSTR,...);
 static BOOL fileExist(LPCSTR);
 
+/*Private memory allocation wrapper methods*/
+LPVOID GT_MemAlloc(DWORD,SIZE_T);
+BOOL GT_MemFree(LPVOID);
+
 /*Private miscellaneous methods*/
 static void doVirtualKeyPress(int,int,int);
 static BOOL CALLBACK EnumAllWindows(HWND,LPARAM);
-static LPSTR strcasestr(LPSTR,LPCSTR);
 static BOOL isPrivateField(BOOL,LPCSTR,int);
 
 /*Global variables for storing game information*/
-DWORD process_id = NIL;
-HANDLE game_handle = (HANDLE)NULL;
-CHAR game_name[MAX_PATH] = {NUL};
-HWND game_hwnd = (HWND)NULL;
+extern DWORD process_id;
+extern HANDLE game_handle;
+extern CHAR game_name[MAX_PATH];
+extern HWND game_hwnd;
+
 
 /*Global variable for storing error code*/
-DWORD error_code = NIL;
+extern DWORD error_code;
 
-/*Setting private methods inaccessible*/
-BOOL private_field = FALSE;
+/*Global variable for Setting private methods inaccessible*/
+extern BOOL private_field;
 
-/*Setting add Logs to disable by default.*/
-BOOL logs_enabled = FALSE;
+/*Global variable for enabling/disabling logs*/
+extern BOOL logs_enabled;
 	
 #endif	/* _GTLIBC_H_ */

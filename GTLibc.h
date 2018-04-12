@@ -36,7 +36,7 @@ From beginning of trainer development till the end, it provides all necessary me
 
 NOTE : This ain't memory scanning,hooking,analyzing library, it won't provide methods for scanning/signature or dumping RAW memory.
 
-AIM : The aim of this library is only to provide the most efficient way of creating game trainer 
+AIM : The aim of this library is only to provide the most efficient way of creating game trainer
 and to provide a layer on top of WIN-32 API cumbersome methods and to make reading/writing ,finding Game process easier and convenient.
 
 DOCUMENTATION INFO :
@@ -49,7 +49,7 @@ GTLIBC Version : V 1.1.
 WHATS NEW IN THIS VERSION :
 [+] Added Custom procedure injection and shellcode injection methods for advanced game hacking.
 [+] Added Support for Microsoft's visual studio (MSVC compiler) and for Visual C/CPP.
-[+] Added wrapper memory methods for better Memory management. 
+[+] Added wrapper memory methods for better Memory management.
 [-] Removed support for Multiple games found in memory.
 
 
@@ -63,9 +63,16 @@ V 1.0 : Dated : 23/03/2018
 V 1.1 : Dated : 11/04/2018
 */
 
-/*Including WIN32 libraries*/
+/*Undefine UNICODE if already defined*/
+#ifdef UNICODE
+#undef UNICODE
+#endif
+
+/*Defining WIN32 Constants*/
 #define WINVER 0x0500
 #define _WIN32_WINNT 0x0501
+
+/*Including WIN32 libraries*/
 #include <windows.h>
 #include <tlhelp32.h>
 
@@ -88,7 +95,7 @@ V 1.1 : Dated : 11/04/2018
 #define throw(x) __HadError=TRUE;goto ExitJmp;
 
 /*Enum to store OPCODE type*/
-typedef enum OPCODE{
+typedef enum OPCODE {
 	OPCODE_SHORT_JUMP,
 	OPCODE_NEAR_JUMP,
 	OPCODE_CALL
@@ -103,102 +110,101 @@ HWND findGameWindow(LPCSTR);
 
 /*Public methods to Read/Write values from/at Address.*/
 DWORD readAddress(LPVOID);
-DWORD readAddressOffset(LPVOID,DWORD);
-DWORD* readAddressOffsets(LPVOID,DWORD*,SIZE_T);
-BOOL writeAddress(LPVOID,DWORD);
-BOOL writeAddressOffset(LPVOID,DWORD,DWORD);
-BOOL writeAddressOffsets(LPVOID,DWORD*,SIZE_T,DWORD);
+DWORD readAddressOffset(LPVOID, DWORD);
+DWORD* readAddressOffsets(LPVOID, DWORD*, SIZE_T);
+BOOL writeAddress(LPVOID, DWORD);
+BOOL writeAddressOffset(LPVOID, DWORD, DWORD);
+BOOL writeAddressOffsets(LPVOID, DWORD*, SIZE_T, DWORD);
 
 /*Public methods to Read/Write pointer from/at Address.*/
 LPVOID readPointerOffset(LPVOID, DWORD);
-LPVOID readPointerOffsets(LPVOID,DWORD*,SIZE_T);
+LPVOID readPointerOffsets(LPVOID, DWORD*, SIZE_T);
 BOOL writePointerOffset(LPVOID, DWORD, DWORD);
-BOOL writePointerOffsets(LPVOID,DWORD*,SIZE_T,DWORD);
+BOOL writePointerOffsets(LPVOID, DWORD*, SIZE_T, DWORD);
 
 /*Public getter methods to get Game Name,Handle,Process ID,base address.*/
-LPCSTR getGameName(void);
-DWORD getProcessID(void);
+LPCSTR getGameName(VOID);
+DWORD getProcessID(VOID);
 HANDLE getGameHandle4mHWND(HWND);
 DWORD getProcessID4mHWND(HWND);
 LPBYTE getGameBaseAddress(DWORD);
 
 /*Public methods for creating hot-keys*/
-BOOL hotKeysDown(int,...);
-BOOL isKeyPressed(const int);
-BOOL isKeyToggled(const int);
+BOOL hotKeysDown(INT, ...);
+BOOL isKeyPressed(CONST INT);
+BOOL isKeyToggled(CONST INT);
 
 /****************************************************************************/
 /****************-SEMI-PRIVATE-METHODS-**************************************/
 /****************************************************************************/
 /*Semi-private methods for pressing Keyboard and Mouse keys*/
-void doMousePress(int);
-void doKeyPress(int);
+VOID doMousePress(INT);
+VOID doKeyPress(INT);
 
 /*Semi-private Tool for Applying cheat codes*/
-void setCheatCode(LPCSTR);
+VOID setCheatCode(LPCSTR);
 
 /*Semi-private Tool for searching in offset area*/
-LPSTR searchOffsetArea(LPVOID,const size_t,const size_t,DWORD);
+LPSTR searchOffsetArea(LPVOID, CONST size_t, CONST size_t, DWORD);
 
 /*Semi-private Tool for Injecting custom code*/
-BOOL injectCode(LPVOID,LPCVOID,SIZE_T);
-BOOL injectCodes(LPVOID[],LPBYTE[],SIZE_T[],SIZE_T);
+BOOL injectCode(LPVOID, LPCVOID, SIZE_T);
+BOOL injectCodes(LPVOID[], LPBYTE[], SIZE_T[], SIZE_T);
 
 /*Semi-private Tool for writing assembly NOP instruction*/
-BOOL writeNOP(LPVOID,SIZE_T);
-BOOL writeNOPs(LPVOID[],SIZE_T[],SIZE_T);
+BOOL writeNOP(LPVOID, SIZE_T);
+BOOL writeNOPs(LPVOID[], SIZE_T[], SIZE_T);
 
 /*Semi-private Tool for writing assembly JMP or CALL instruction*/
-BOOL writeJmpOrCall(LPVOID,LPVOID,OPCODE,UINT);
+BOOL writeJmpOrCall(LPVOID, LPVOID, OPCODE, UINT);
 
 /*Semi-private Tool for injecting custom Procedure into game*/
-BOOL injectProc(LPVOID,LPCVOID,SIZE_T,UINT);
+BOOL injectProc(LPVOID, LPCVOID, SIZE_T, UINT);
 
 /*Semi-private Tool for injecting custom shellcode into game*/
-LPVOID injectShellCode(LPCVOID,SIZE_T);
+LPVOID injectShellCode(LPCVOID, SIZE_T);
 
 /*Semi private method for enabling/disabling Logs*/
-BOOL enableLogs(void);
-BOOL disableLogs(void);
+BOOL enableLogs(VOID);
+BOOL disableLogs(VOID);
 
 /*Semi-private getter methods to get Game,Handle,HWND.*/
-HANDLE getGameHandle(void);
-HWND getGameHWND(void);
+HANDLE getGameHandle(VOID);
+HWND getGameHWND(VOID);
 
 /****************************************************************************/
 /****************-PRIVATE-METHODS-*******************************************/
 /****************************************************************************/
 /*Private methods for showing error/info/warning*/
-static void showError(DWORD,LPCSTR,DWORD);
-static void showInfo(LPCSTR);
-static void showWarning(LPCSTR);
+static VOID showError(DWORD, LPCSTR, DWORD);
+static VOID showInfo(LPCSTR);
+static VOID showWarning(LPCSTR);
 
 /*Private setter methods for setting Game Name, ID,Handle,HWND etc*/
-static void setProcessID(DWORD);
-static void setGameHandle(HANDLE);
-static void setGameName(LPCSTR);
-static void setGameHWND(DWORD);
+static VOID setProcessID(DWORD);
+static VOID setGameHandle(HANDLE);
+static VOID setGameName(LPCSTR);
+static VOID setGameHWND(DWORD);
 
 /*Private utility methods for time and Logs*/
-static LPSTR getCurrentTime(void);
-static void addLog(LPCSTR,...);
+static LPSTR getCurrentTime(VOID);
+static VOID addLog(LPCSTR, ...);
 static BOOL fileExist(LPCSTR);
 
 /*Private memory allocation wrapper methods*/
-LPVOID GT_MemAlloc(DWORD,SIZE_T);
+LPVOID GT_MemAlloc(DWORD, SIZE_T);
 BOOL GT_MemFree(LPVOID);
 
 /*Private miscellaneous methods*/
-static void doVirtualKeyPress(int,int,int);
-static BOOL CALLBACK EnumAllWindows(HWND,LPARAM);
-static BOOL isPrivateField(BOOL,LPCSTR,int);
+static VOID doVirtualKeyPress(INT, INT, INT);
+static BOOL CALLBACK EnumAllWindows(HWND, LPARAM);
+static BOOL isPrivateField(BOOL, LPCSTR, INT);
 
 /*Global variables for storing game information*/
 extern DWORD process_id;
 extern HANDLE game_handle;
 extern CHAR game_name[MAX_PATH];
 extern HWND game_hwnd;
-
 
 /*Global variable for storing error code*/
 extern DWORD error_code;
@@ -208,5 +214,5 @@ extern BOOL private_field;
 
 /*Global variable for enabling/disabling logs*/
 extern BOOL logs_enabled;
-	
+
 #endif	/* _GTLIBC_H_ */

@@ -94,12 +94,20 @@ V 1.1 : Dated : 11/04/2018
 #define catch(x) ExitJmp:if(__HadError)
 #define throw(x) __HadError=TRUE;goto ExitJmp;
 
-/*Enum to store OPCODE type*/
+/*Enum for OPCODE type*/
 typedef enum OPCODE {
-	OPCODE_SHORT_JUMP,
-	OPCODE_NEAR_JUMP,
-	OPCODE_CALL
+	OPCODE_SHORT_JUMP = 0x1,
+	OPCODE_NEAR_JUMP = 0x2,
+	OPCODE_CALL = 0x3
 }OPCODE;
+
+/*Enum for SHELLCODE type*/
+typedef enum SHELL
+{
+	ORIGINAL_SHELL,
+	PATCHED_SHELL,
+}SHELL; 
+
 
 /****************************************************************************/
 /*********************-PUBLIC-METHODS-***************************************/
@@ -159,10 +167,10 @@ BOOL writeNOPs(LPVOID[], SIZE_T[], SIZE_T);
 BOOL writeJmpOrCall(LPVOID, LPVOID, OPCODE, UINT);
 
 /*Semi-private Tool for injecting custom Procedure into game*/
-BOOL injectProc(LPVOID, LPCVOID, SIZE_T, UINT);
+BOOL injectProc(LPVOID, LPCVOID, SIZE_T, UINT,SHELL,OPCODE);
 
 /*Semi-private Tool for injecting custom shellcode into game*/
-LPVOID injectShellCode(LPCVOID, SIZE_T);
+LPVOID injectShellCode(LPVOID,LPCVOID, SIZE_T,SHELL,OPCODE);
 
 /*Semi private method for enabling/disabling Logs*/
 BOOL enableLogs(VOID);

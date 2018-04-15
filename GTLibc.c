@@ -6,7 +6,6 @@ HANDLE game_handle = (HANDLE)NULL;
 CHAR game_name[MAX_PATH] = { NUL };
 HWND game_hwnd = (HWND)NULL;
 
-
 /*Global variable for storing error code*/
 DWORD error_code = NIL;
 
@@ -15,6 +14,9 @@ BOOL private_field = FALSE;
 
 /*Setting add Logs to disable by default.*/
 BOOL logs_enabled = FALSE;
+
+/*Store amount of nops*/
+UINT n_nops = NIL;
 
 /*GTLibc -library to make game trainer for c/c++.*/
 
@@ -100,13 +102,13 @@ HANDLE findGameProcess(LPCSTR game_name)
 						game_name_exe[index] = sz_exe_file[index];
 					}
 
-					GT_MemFree(game_exe);
+					GT_MemFree((LPVOID)game_exe);
 					private_field = TRUE;
 
-					GT_MemFree(game_name_exe);
+					GT_MemFree((LPVOID)game_name_exe);
 					private_field = TRUE;
 
-					GT_MemFree(sz_exe_file);
+					GT_MemFree((LPVOID)sz_exe_file);
 					private_field = TRUE;
 					break;
 				}
@@ -1704,36 +1706,71 @@ BOOL writeJmpOrCall(LPVOID lp_source, LPVOID lp_destination, OPCODE opcode_type,
 }
 
 /**
- * INFO : Inject custom procedure into the game using shellcode method.
+ * INFO : Inject custom or original procedure into the game using shellcode method.
  * @description - Inject your assembly procedure directly into target process.
- * @param - Address where to inject procedure, Pointer to procedure's opcodes,size of procedure in bytes, amount of NOPs to fill after injecting proc.
+ * @param -
+  lp_address - Address where to inject procedure. 	[Required]
+  lp_proc - Pointer to procedure's opcodes,size of procedure in bytes. [Required]
+  sz_proc - Size of procedure opcodes in bytes. [Required]
+  nops_amount - amount of NOPs to fill after injecting procedure. [Optional] (Required if SHELL is of type Patched)
+  shell_type - Shellcode type original or patched (custom) , Use Enum 'SHELL' to provide values. [Required]
+  opcode_type - Type of opcode to call your injected shellcode with, Use Enum 'OPCODE' to provide values. [Optional] (Required if SHELL is of type Patched)
+
  * @return - On success of injection it returns TRUE otherwise returns FALSE.
 
- * WARNING : This is advanced stuff so be careful while injecting custom procedure it should be exact opcode
+ * WARNING : This is advanced stuff so be careful while injecting procedure it should be exact opcode
  * for target machine's architecture ex : (x86,x64,amd64) and length of opcode should be exact as defined by ISA
  * otherwise target process could result in SEGFAULT causing program to crash.
  *
- * NOTE : Amount of NOPs to fill in necessary after instruction because CALL instruction is 5 bytes but current instruction could be lower
+ * NOTE : Amount of NOPs to fill in necessary after instruction because CALL/JMP instruction is 5 bytes but current instruction could be lower
  * or higher , so in order to avoid crashing we will fill NOPs in empty locations.
- * Calculate using disassembler the amount of NOPs needed after instruction depending upon current architecture.
+ * Calculate using any disassembler the amount of NOPs needed after instruction depending upon current architecture.
  */
 
-BOOL injectProc(LPVOID lp_address, LPCVOID lp_proc, SIZE_T sz_proc, UINT nops_amount)
+BOOL injectProc(LPVOID lp_address, LPCVOID lp_proc, SIZE_T sz_proc, UINT nops_amount, SHELL shell_type, OPCODE opcode_type)
 {
 	BOOL inject_status = FALSE;
 	LPVOID shell_code_address = NULL;
+	n_nops = nops_amount;
 	private_field = TRUE;
+
 	if (logs_enabled)
 	{
 		addLog("%s -> Injecting proc at address : %p\twith size : %lu\n", FUNC_NAME, lp_address, sz_proc);
 		private_field = TRUE;
 	}
 
-	shell_code_address = injectShellCode(lp_proc, sz_proc);
-	private_field = TRUE;
+	/*If shellcode is of original then inject shellcode with NIL NOPs*/
+	if (shell_type == ORIGINAL_SHELL)
+	{
+		inject_status = (BOOL)injectShellCode(lp_address, lp_proc, sz_proc, ORIGINAL_SHELL, NIL);
+		private_field = TRUE;
+	}
 
-	inject_status = writeJmpOrCall(lp_address, shell_code_address, OPCODE_CALL, nops_amount);
-	private_field = TRUE;
+	/*If shellcode is of patched/custom then inject shellcode with provided NOPs*/
+	else if (shell_type == PATCHED_SHELL)
+	{
+		shell_code_address = injectShellCode(lp_address, lp_proc, sz_proc, PATCHED_SHELL, opcode_type);
+		private_field = TRUE;
+
+		if (opcode_type == OPCODE_CALL)
+		{
+			inject_status = writeJmpOrCall(lp_address, shell_code_address, OPCODE_CALL, nops_amount);
+			private_field = TRUE;
+		}
+
+		else if (opcode_type == OPCODE_NEAR_JUMP)
+		{
+			inject_status = writeJmpOrCall(lp_address, shell_code_address, OPCODE_NEAR_JUMP, nops_amount);
+			private_field = TRUE;
+		}
+
+		else if (opcode_type == OPCODE_SHORT_JUMP)
+		{
+			inject_status = writeJmpOrCall(lp_address, shell_code_address, OPCODE_SHORT_JUMP, nops_amount);
+			private_field = TRUE;
+		}
+	}
 
 	if (logs_enabled)
 	{
@@ -1746,25 +1783,43 @@ BOOL injectProc(LPVOID lp_address, LPCVOID lp_proc, SIZE_T sz_proc, UINT nops_am
 }
 
 /**
- * INFO : Inject custom shellcode into the game.
- * @description - Inject your custom shellcode procedure directly into target process (Virtual Memory).
- * @param - Pointer to procedure's opcodes,size of procedure in bytes.
- * @return - On success of injection it returns address where shellcode was injected otherwise returns NULL.
+ * INFO : Inject custom or original shellcode into the game.
+ * @description - Inject your custom/original shellcode directly into target process (Virtual Memory).
+ * @param -
+   lp_origshell_address - Address of original shellcode. [Optional] (Required if SHELL is of type Original)
+   lp_shellcode - Pointer to shellcode. 	   [Required]
+   sz_shellcode - size of shellcode in bytes. [Required]
+  shell_type - Shellcode type original or patched (custom) , Use Enum 'SHELL' to provide values. [Required]
+  opcode_type - Type of opcode to call your injected shellcode with, Use Enum 'OPCODE' to provide values. [Optional] (Required if SHELL is of type Patched)
 
- * WARNING : This is advanced stuff so be careful while injecting custom shellcode it should be exact opcode
+ * @return -
+   if SHELL is of type Patches then On success of injection it returns address where shellcode was injected otherwise returns NULL
+   if SHELL is of type Original it returns TRUE on success of code injection otherwise returns FALSE.
+
+ * WARNING : This is advanced stuff so be careful while injecting shellcode it should be exact opcode
  * for target machine's architecture ex : (x86,x64,amd64) and length of opcode should be exact as defined by ISA
  * otherwise target process could result in SEGFAULT causing program to crash.
  */
 
-LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
+LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T sz_shellcode, SHELL shell_type, OPCODE opcode_type)
 {
 	HANDLE game_handle = NULL, h_thread_snap = NULL, h_thread = NULL, target_thread = NULL;
 	LPVOID shell_code_address = NULL;
-	DWORD tid = NIL;
-	UINT index = NIL;
+	DWORD tid = NIL; UINT index = NIL;
 	PUCHAR lpu_shellcode = NULL, ret_opcode = NULL;
-	THREADENTRY32 te32;
-	CONTEXT context;
+	THREADENTRY32 te32; CONTEXT context; BOOL inject_status = FALSE;
+	DWORD relative_offset = 0x5, jmp_opcode_size = 0x5, destination_address = NIL;
+	SIZE_T sz_shellcode_buf = sz_shellcode;
+	private_field = TRUE;
+
+	if (logs_enabled)
+	{
+		LPSTR shell_type_str = ((shell_type == ORIGINAL_SHELL) ? "ORIGINAL SHELL" : (shell_type == PATCHED_SHELL) ? "PATCHED SHELL" : NUL);
+		LPSTR opcode_type_str = ((opcode_type == OPCODE_CALL) ? "OPCODE CALL" : (opcode_type == OPCODE_NEAR_JUMP) ? "OPCODE NEAR JUMP" : (opcode_type == OPCODE_SHORT_JUMP) ? "OPCODE SHORT JUMP" : NUL);
+
+		addLog("%s -> Injecting %s\tat Original address : %p\twith %s\n", FUNC_NAME, shell_type_str, lp_origshell_address, opcode_type_str);
+		private_field = TRUE;
+	}
 
 	try
 	{
@@ -1780,8 +1835,8 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 			}
 		}
 
-		// Takes a snapshot of all threads in the system, 0 to current process
-		h_thread_snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+		// Takes a snapshot of all threads in the system,
+		h_thread_snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, NIL);
 		if (h_thread_snap == INVALID_HANDLE_VALUE)
 		{
 			if (ERROR_INVALID)
@@ -1794,7 +1849,7 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 		{
 			if (logs_enabled)
 			{
-				addLog(" CreateToolhelp32Snapshot success\n");
+				addLog("%s -> CreateToolhelp32Snapshot success\n", FUNC_NAME);
 				private_field = TRUE;
 			}
 		}
@@ -1813,16 +1868,13 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 		{
 			if (logs_enabled)
 			{
-				addLog(" Thread32First success\n");
+				addLog("%s -> Thread32First success\n", FUNC_NAME);
 				private_field = TRUE;
 			}
 		}
 
 
-		/* Now walk the thread list of the system,
-		and display information about each thread
-		associated with the specified process*/
-
+		/*From threads list display info about each thread*/
 		do
 		{
 			if (te32.th32OwnerProcessID == GetProcessId(game_handle))
@@ -1845,7 +1897,7 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 
 					if (logs_enabled)
 					{
-						addLog(" Suspend thread %p\n", te32.th32ThreadID);
+						addLog("%s -> Suspend thread %p\n", FUNC_NAME, te32.th32ThreadID);
 						private_field = TRUE;
 					}
 
@@ -1854,157 +1906,259 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 		} while (Thread32Next(h_thread_snap, &te32));
 		CloseHandle(h_thread_snap);
 
-		// Get context.
-		context.ContextFlags = CONTEXT_FULL;
 
-		// Open targeted thread
-		target_thread = OpenThread(THREAD_ALL_ACCESS, FALSE, tid);
-		if (target_thread == NULL)
+		//if shell is of type patched.
+		if (shell_type == PATCHED_SHELL)
 		{
-			if (ERROR_INVALID)
+			// Get context of current thread.
+			context.ContextFlags = CONTEXT_FULL;
+
+			// Open targeted thread with context,suspend and query flags.
+			target_thread = OpenThread(THREAD_GET_CONTEXT | THREAD_SET_CONTEXT | THREAD_SUSPEND_RESUME | THREAD_QUERY_INFORMATION, FALSE, tid);
+			if (target_thread == NULL)
 			{
-				error_code = GetLastError();
-				throw(error_code);
+				if (ERROR_INVALID)
+				{
+					error_code = GetLastError();
+					throw(error_code);
+				}
 			}
-		}
-		else
-		{
-			if (logs_enabled)
+			else
 			{
-				addLog(" Target thread %p\n", target_thread);
+				if (logs_enabled)
+				{
+					addLog("%s -> Target thread %p\n", FUNC_NAME, target_thread);
+					private_field = TRUE;
+				}
+			}
+
+
+			// Get eip & esp adresses if opcode is CALL.
+			if (opcode_type == OPCODE_CALL)
+			{
+				if (!GetThreadContext(target_thread, &context))
+				{
+					if (ERROR_INVALID)
+					{
+						error_code = GetLastError();
+						throw(error_code);
+					}
+				}
+				else
+				{
+					if (logs_enabled)
+					{
+						addLog("\t%s -> CONTEXT BEFORE : \n\tEIP : %p\n\tESP : %p\n\tEBP : %p\n", FUNC_NAME, context.Eip, context.Esp, context.Ebp);
+						private_field = TRUE;
+
+						addLog("\tEAX : %p\n\tEBX : %p\n\tESI : %p\n\tEDI : %p\n", context.Eax, context.Ebx, context.Esi, context.Edi);
+						private_field = TRUE;
+					}
+				}
+
+
+				/* Save eip, esp & ebp and Allocate 4 bytes on the top of the stack for the RET if opcode is type CALL*/
+				context.Esp -= sizeof(UINT);
+				if (!WriteProcessMemory(game_handle, (LPVOID)context.Esp, (LPCVOID)&context.Eip, sizeof(UINT), NULL))
+				{
+					if (ERROR_INVALID)
+					{
+						error_code = GetLastError();
+						throw(error_code);
+					}
+				}
+				else
+				{
+					if (logs_enabled)
+					{
+						addLog("\t%s -> CONTEXT INJECT : \n\tEIP : %p\n\tESP : %p\n\tEBP : %p\n", FUNC_NAME, context.Eip, context.Esp, context.Ebp);
+						private_field = TRUE;
+
+						addLog("\tEAX : %p\n\tEBX : %p\n\tESI : %p\n\tEDI : %p\n", context.Eax, context.Ebx, context.Esi, context.Edi);
+						private_field = TRUE;
+					}
+				}
+
+				//Exta space for RET in case of CALL opcode.
+				sz_shellcode += 0x1;
+
+				//Allocate memory to append return opcode.
+				lpu_shellcode = GT_MemAlloc(HEAP_ZERO_MEMORY, sz_shellcode);
+				CopyMemory(lpu_shellcode, lp_shellcode, sz_shellcode - 0x2);
+
+				//Append return opcode to current shellcode.
+				ret_opcode = (PUCHAR)"\xC3";
+				CopyMemory(lpu_shellcode + (sz_shellcode - 0x1), ret_opcode, sizeof(UCHAR));
 				private_field = TRUE;
 			}
-		}
 
+			//if opcode is JMP then Jump back next instrcution.
+			else if (opcode_type == OPCODE_NEAR_JUMP || opcode_type == OPCODE_SHORT_JUMP)
+			{
+				//Exta space for JMP in case of JMP opcode.
+				sz_shellcode += jmp_opcode_size;
 
-		// Get eip & esp adresses
-		if (!GetThreadContext(target_thread, &context))
-		{
-			if (ERROR_INVALID)
-			{
-				error_code = GetLastError();
-				throw(error_code);
-			}
-		}
-		else
-		{
-			if (logs_enabled)
-			{
-				addLog("\tEIP : %p\n\tESP : %p\n\tEBP : %p\n", context.Eip, context.Esp, context.Ebp);
+				//Allocate memory to append JMP opcode.
+				lpu_shellcode = GT_MemAlloc(HEAP_ZERO_MEMORY, sz_shellcode);
+				CopyMemory(lpu_shellcode, lp_shellcode, sz_shellcode - jmp_opcode_size);
 				private_field = TRUE;
 			}
-		}
 
-		/* Save eip, esp & ebp
-		Allocate 4 bytes on the top of the stack for the RET*/
-		context.Esp -= sizeof(UINT);
-		if (!WriteProcessMemory(game_handle, (LPVOID)context.Esp, (LPCVOID)&context.Eip, sizeof(UINT), NULL))
-		{
-			if (ERROR_INVALID)
-			{
-				error_code = GetLastError();
-				throw(error_code);
-			}
-		}
-		else
-		{
+			//point to new appended shellcode.
+			lp_shellcode = lpu_shellcode;
+
+			//Add shellcode to Logs
 			if (logs_enabled)
 			{
-				addLog("writing ESP success\tEIP : %p\n\tESP : %p\n\tEBP : %p\n", context.Eip, context.Esp, context.Ebp);
+				addLog("%s -> Shellcode:\n", FUNC_NAME);
+				private_field = TRUE;
+
+				for (index = 0; index < sz_shellcode; index++)
+				{
+					addLog("%p\t", *(PUCHAR)(((DWORD)lp_shellcode + index)));
+					private_field = TRUE;
+				}
+			}
+
+			// Allocate memory in the targeted process for our shellcode
+			shell_code_address = VirtualAllocEx(game_handle, NULL, sz_shellcode, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+			if (shell_code_address == NULL)
+			{
+				if (ERROR_INVALID)
+				{
+					error_code = GetLastError();
+					throw(error_code);
+				}
+			}
+			else
+			{
+				if (logs_enabled)
+				{
+					addLog("\n%s -> Allocating Virtual memory of %d bytes for shellcode\n", FUNC_NAME, sz_shellcode);
+					private_field = TRUE;
+				}
+			}
+
+			// Write the shellcode into the targeted thread
+			if (!WriteProcessMemory(game_handle, shell_code_address, (LPCVOID)lp_shellcode, sz_shellcode, NULL))
+			{
+				if (ERROR_INVALID)
+				{
+					error_code = GetLastError();
+					throw(error_code);
+				}
+			}
+			else
+			{
+				if (logs_enabled)
+				{
+					addLog("%s -> shellcode inject success\n", FUNC_NAME);
+					private_field = TRUE;
+				}
+			}
+
+			if (opcode_type == OPCODE_SHORT_JUMP || opcode_type == OPCODE_NEAR_JUMP)
+			{
+				destination_address = (DWORD)lp_origshell_address;
+				destination_address += (relative_offset + n_nops);
+
+				if (logs_enabled)
+				{
+					addLog("%s -> destination_address : %p\n", FUNC_NAME, (LPVOID)destination_address);
+					private_field = TRUE;
+				}
+
+				writeJmpOrCall((LPVOID)((DWORD)shell_code_address + sz_shellcode_buf), (LPVOID)destination_address, OPCODE_NEAR_JUMP, NIL);
 				private_field = TRUE;
 			}
+
+			if (opcode_type == OPCODE_CALL)
+			{
+				// Redirect eip to the shellcode address
+				context.Eip = (DWORD)shell_code_address;
+
+				if (logs_enabled)
+				{
+					addLog("\t%s -> CONTEXT REDIRECT : \n\tEIP : %p\n\tESP : %p\n\tEBP : %p\n", FUNC_NAME, context.Eip, context.Esp, context.Ebp);
+					private_field = TRUE;
+
+					addLog("\tEAX : %p\n\tEBX : %p\n\tESI : %p\n\tEDI : %p\n", context.Eax, context.Ebx, context.Esi, context.Edi);
+					private_field = TRUE;
+				}
+
+
+				if (!SetThreadContext(target_thread, &context))
+				{
+					if (ERROR_INVALID)
+					{
+						error_code = GetLastError();
+						throw(error_code);
+					}
+				}
+				else
+				{
+					if (logs_enabled)
+					{
+						addLog("%s -> SetThreadContext success\n", FUNC_NAME);
+						private_field = TRUE;
+					}
+				}
+			}
+
 		}
 
-		//Allocate memory to append return opcode.
-		lpu_shellcode = GT_MemAlloc(HEAP_ZERO_MEMORY, sz_shellcode + 1);
-		CopyMemory(lpu_shellcode, lp_shellcode, sz_shellcode);
 
-		//Append return opcode to current shellcode.
-		ret_opcode = (PUCHAR)"\xC3";
-		CopyMemory(lpu_shellcode + sz_shellcode, ret_opcode, sizeof(UCHAR));
-
-		//point to new shellcode with return opcode.
-		lp_shellcode = lpu_shellcode;
-
-		private_field = TRUE;
-		//Add shellcode to Logs
-		addLog(" Shellcode:\n");
-		private_field = TRUE;
-
-		for (index = 0; index < sz_shellcode + 1; index++)
+		else if (shell_type == ORIGINAL_SHELL)
 		{
-			addLog("%p\t", *(PUCHAR)(((DWORD)lp_shellcode + index)));
+			addLog("%s -> Original shellcode\n", FUNC_NAME);
 			private_field = TRUE;
-		}
 
-		// Allocate memory in the targeted process for our shellcode
-		shell_code_address = VirtualAllocEx(game_handle, NULL, sz_shellcode + 1, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-		if (shell_code_address == NULL)
-		{
-			if (ERROR_INVALID)
+			for (index = 0; index < sz_shellcode; index++)
 			{
-				error_code = GetLastError();
-				throw(error_code);
-			}
-		}
-		else
-		{
-			if (logs_enabled)
-			{
-				addLog("Allocating %d bytes for our shellcode\n", sz_shellcode + 1);
+				addLog("%p\t", *(PUCHAR)(((DWORD)lp_shellcode + index)));
 				private_field = TRUE;
 			}
-		}
 
-		// Write the shellcode into the targeted thread
-		if (!WriteProcessMemory(game_handle, shell_code_address, (LPCVOID)lp_shellcode, sz_shellcode + 1, NULL))
-		{
-			if (ERROR_INVALID)
+			if (lp_origshell_address == NULL)
 			{
-				error_code = GetLastError();
-				throw(error_code);
+				if (ERROR_INVALID)
+				{
+					error_code = GetLastError();
+					throw(error_code);
+				}
 			}
-		}
-		else
-		{
-			if (logs_enabled)
+			else
 			{
-				addLog("shellcode inject success\n");
-				private_field = TRUE;
+				if (logs_enabled)
+				{
+					addLog("\n%s -> Injecting original shellcode of %d bytes\n", FUNC_NAME, sz_shellcode);
+					private_field = TRUE;
+				}
 			}
-		}
 
-
-		// Redirect eip to the s address
-		context.Eip = (DWORD)shell_code_address;
-		if (logs_enabled)
-		{
-			addLog("\tEIP : %p\n\tESP : %p\n\tEBP : %p\n", context.Eip, context.Esp, context.Ebp);
-			private_field = TRUE;
-		}
-
-
-		if (!SetThreadContext(target_thread, &context))
-		{
-			if (ERROR_INVALID)
+			// Write the original shellcode.
+			if (!WriteProcessMemory(game_handle, lp_origshell_address, (LPCVOID)lp_shellcode, sz_shellcode, NULL))
 			{
-				error_code = GetLastError();
-				throw(error_code);
+				if (ERROR_INVALID)
+				{
+					error_code = GetLastError();
+					throw(error_code);
+				}
 			}
-		}
-		else
-		{
-			if (logs_enabled)
+			else
 			{
-				addLog("SetThreadContext success\n");
-				private_field = TRUE;
+				if (logs_enabled)
+				{
+					addLog("%s -> shellcode inject success\n", FUNC_NAME);
+					inject_status = TRUE;
+					private_field = TRUE;
+				}
 			}
 		}
 
 
-		// Resume Threads
-		// Takes a snapshot of all threads in the system, 0 to current process
-		h_thread_snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+		// Resume Thread and take snapshot of all threads in the system, 0 to current process
+		h_thread_snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, NIL);
 		te32.dwSize = sizeof(THREADENTRY32);
 		if (h_thread_snap == INVALID_HANDLE_VALUE)
 		{
@@ -2018,12 +2172,12 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 		{
 			if (logs_enabled)
 			{
-				addLog("CreateToolhelp32Snapshot success\n");
+				addLog("%s -> CreateToolhelp32Snapshot success\n", FUNC_NAME);
 				private_field = TRUE;
 			}
 		}
 
-		// Retrieves information about the first thread of any process encountered in a system snapshot.
+		// Retrieves info about the first thread of any process encountered in a system snapshot.
 		if (Thread32First(h_thread_snap, &te32) == FALSE)
 		{
 			if (ERROR_INVALID)
@@ -2036,21 +2190,22 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 		{
 			if (logs_enabled)
 			{
-				addLog("Thread32First success\n");
+				addLog("%s -> Thread32First success\n", FUNC_NAME);
 				private_field = TRUE;
 			}
 		}
 
 
-		// Now walk the thread list of the system,
-		// and display information about each thread
-		// associated with the specified process
+		//From Thread list display information about each thread.
 		do
 		{
 			if (te32.th32OwnerProcessID == GetProcessId(game_handle))
 			{
-				addLog("\tTHREAD ID = %p\n", te32.th32ThreadID);
-				private_field = TRUE;
+				if (logs_enabled)
+				{
+					addLog("\%s -> THREAD ID = %p\n", FUNC_NAME, te32.th32ThreadID);
+					private_field = TRUE;
+				}
 
 				h_thread = OpenThread(THREAD_ALL_ACCESS, FALSE, te32.th32ThreadID);
 				if (h_thread == NULL)
@@ -2070,7 +2225,7 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 
 					if (logs_enabled)
 					{
-						addLog("Resume thread success\n");
+						addLog("%s -> Resume thread success\n", FUNC_NAME);
 						private_field = TRUE;
 					}
 
@@ -2092,11 +2247,20 @@ LPVOID injectShellCode(LPCVOID lp_shellcode, SIZE_T sz_shellcode)
 		private_field = TRUE;
 	}
 
+	if (shell_type == ORIGINAL_SHELL)
+	{
+		if (logs_enabled)
+		{
+			addLog("%s -> returned status : %d\n", FUNC_NAME, inject_status);
+		}
+		return (LPVOID)inject_status;
+	}
+
+	//else otherwise return shell address.
 	if (logs_enabled)
 	{
 		addLog("%s -> returned address : %p\n", FUNC_NAME, shell_code_address);
 	}
-
 	private_field = FALSE;
 	return shell_code_address;
 }
@@ -2492,13 +2656,20 @@ LPVOID GT_MemAlloc(DWORD dw_flag, SIZE_T sz_size)
 					throw(error_code);
 				}
 			}
+			else
+			{
+				if (logs_enabled)
+				{
+					private_field = TRUE;
+					addLog("%s -> successfully allocated %lu bytes\n", FUNC_NAME, sz_size);
+				}
+			}
 
 		}
 		catch (error_code)
 		{
 			private_field = TRUE;
 			showError(error_code, FUNC_NAME, LINE_NO);
-			private_field = TRUE;
 		}
 	}
 
@@ -2522,12 +2693,19 @@ BOOL GT_MemFree(LPVOID gt_mem_block)
 				}
 			}
 
+			else
+			{
+				if (logs_enabled)
+				{
+					private_field = TRUE;
+					addLog("%s -> successfully freed memory block\n", FUNC_NAME);
+				}
+			}
 		}
 		catch (erro_code)
 		{
 			private_field = TRUE;
 			showError(error_code, FUNC_NAME, LINE_NO);
-			private_field = TRUE;
 		}
 	}
 	private_field = FALSE;

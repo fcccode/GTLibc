@@ -167,7 +167,7 @@ BOOL writeNOPs(LPVOID[], SIZE_T[], SIZE_T);
 BOOL writeJmpOrCall(LPVOID, LPVOID, OPCODE, UINT);
 
 /*Semi-private Tool for injecting custom Procedure into game*/
-BOOL injectProc(LPVOID, LPCVOID, SIZE_T, UINT,SHELL,OPCODE);
+LPVOID injectProc(LPVOID, LPCVOID, SIZE_T, UINT,SHELL,OPCODE);
 
 /*Semi-private Tool for injecting custom shellcode into game*/
 LPVOID injectShellCode(LPVOID,LPCVOID, SIZE_T,SHELL,OPCODE);

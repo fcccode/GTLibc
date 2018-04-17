@@ -1716,7 +1716,9 @@ BOOL writeJmpOrCall(LPVOID lp_source, LPVOID lp_destination, OPCODE opcode_type,
   shell_type - Shellcode type original or patched (custom) , Use Enum 'SHELL' to provide values. [Required]
   opcode_type - Type of opcode to call your injected shellcode with, Use Enum 'OPCODE' to provide values. [Optional] (Required if SHELL is of type Patched)
 
- * @return - On success of injection it returns TRUE otherwise returns FALSE.
+ * @return -
+   if SHELL is of type Patched then On success of injection it returns address where procedure was injected otherwise returns NULL
+   if SHELL is of type Original it returns TRUE on success of code injection otherwise returns FALSE.
 
  * WARNING : This is advanced stuff so be careful while injecting procedure it should be exact opcode
  * for target machine's architecture ex : (x86,x64,amd64) and length of opcode should be exact as defined by ISA
@@ -1727,7 +1729,7 @@ BOOL writeJmpOrCall(LPVOID lp_source, LPVOID lp_destination, OPCODE opcode_type,
  * Calculate using any disassembler the amount of NOPs needed after instruction depending upon current architecture.
  */
 
-BOOL injectProc(LPVOID lp_address, LPCVOID lp_proc, SIZE_T sz_proc, UINT nops_amount, SHELL shell_type, OPCODE opcode_type)
+LPVOID injectProc(LPVOID lp_address, LPCVOID lp_proc, SIZE_T sz_proc, UINT nops_amount, SHELL shell_type, OPCODE opcode_type)
 {
 	BOOL inject_status = FALSE;
 	LPVOID shell_code_address = NULL;
@@ -1759,41 +1761,46 @@ BOOL injectProc(LPVOID lp_address, LPCVOID lp_proc, SIZE_T sz_proc, UINT nops_am
 			private_field = TRUE;
 		}
 
-		else if (opcode_type == OPCODE_NEAR_JUMP)
+		/*No matter which jump was selected we will use NEAR_JUMP because you can only call shellcode with NEAR_JUMP*/
+		else if (opcode_type == OPCODE_NEAR_JUMP || opcode_type == OPCODE_SHORT_JUMP)
 		{
 			inject_status = writeJmpOrCall(lp_address, shell_code_address, OPCODE_NEAR_JUMP, nops_amount);
 			private_field = TRUE;
 		}
-
-		else if (opcode_type == OPCODE_SHORT_JUMP)
-		{
-			inject_status = writeJmpOrCall(lp_address, shell_code_address, OPCODE_SHORT_JUMP, nops_amount);
-			private_field = TRUE;
-		}
 	}
 
+	if (shell_type == ORIGINAL_SHELL)
+	{
+		if (logs_enabled)
+		{
+			addLog("%s -> returned status : %d\n", FUNC_NAME, inject_status);
+		}
+
+		private_field = FALSE;
+		return (LPVOID)inject_status;
+	}
+
+	//else otherwise return shell address.
 	if (logs_enabled)
 	{
-		private_field = TRUE;
-		addLog("%s -> returned status : %d\n", FUNC_NAME, inject_status);
+		addLog("%s -> returned address : %p\n", FUNC_NAME, shell_code_address);
 	}
-
 	private_field = FALSE;
-	return inject_status;
+	return shell_code_address;
 }
 
 /**
  * INFO : Inject custom or original shellcode into the game.
  * @description - Inject your custom/original shellcode directly into target process (Virtual Memory).
  * @param -
-   lp_origshell_address - Address of original shellcode. [Optional] (Required if SHELL is of type Original)
+   lp_origshell_address - Address of original shellcode. [Optional] (Required only if SHELL is of type Original or if Opcode is of type JMP)
    lp_shellcode - Pointer to shellcode. 	   [Required]
    sz_shellcode - size of shellcode in bytes. [Required]
   shell_type - Shellcode type original or patched (custom) , Use Enum 'SHELL' to provide values. [Required]
   opcode_type - Type of opcode to call your injected shellcode with, Use Enum 'OPCODE' to provide values. [Optional] (Required if SHELL is of type Patched)
 
  * @return -
-   if SHELL is of type Patches then On success of injection it returns address where shellcode was injected otherwise returns NULL
+   if SHELL is of type Patched then On success of injection it returns address where shellcode was injected otherwise returns NULL
    if SHELL is of type Original it returns TRUE on success of code injection otherwise returns FALSE.
 
  * WARNING : This is advanced stuff so be careful while injecting shellcode it should be exact opcode
@@ -2057,6 +2064,8 @@ LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T
 				}
 			}
 
+			/*No matter which jump was selected we will use NEAR_JUMP because you can only jump
+			back to original code from Virtual memory with NEAR_JUMP*/
 			if (opcode_type == OPCODE_SHORT_JUMP || opcode_type == OPCODE_NEAR_JUMP)
 			{
 				destination_address = (DWORD)lp_origshell_address;
@@ -2110,13 +2119,17 @@ LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T
 
 		else if (shell_type == ORIGINAL_SHELL)
 		{
-			addLog("%s -> Original shellcode\n", FUNC_NAME);
-			private_field = TRUE;
 
-			for (index = 0; index < sz_shellcode; index++)
+			if (logs_enabled)
 			{
-				addLog("%p\t", *(PUCHAR)(((DWORD)lp_shellcode + index)));
+				addLog("%s -> Original shellcode\n", FUNC_NAME);
 				private_field = TRUE;
+
+				for (index = 0; index < sz_shellcode; index++)
+				{
+					addLog("%p\t", *(PUCHAR)(((DWORD)lp_shellcode + index)));
+					private_field = TRUE;
+				}
 			}
 
 			if (lp_origshell_address == NULL)
@@ -2137,7 +2150,7 @@ LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T
 			}
 
 			// Write the original shellcode.
-			if (!WriteProcessMemory(game_handle, lp_origshell_address, (LPCVOID)lp_shellcode, sz_shellcode, NULL))
+			if (!(inject_status = WriteProcessMemory(game_handle, lp_origshell_address, (LPCVOID)lp_shellcode, sz_shellcode, NULL)))
 			{
 				if (ERROR_INVALID)
 				{
@@ -2150,7 +2163,6 @@ LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T
 				if (logs_enabled)
 				{
 					addLog("%s -> shellcode inject success\n", FUNC_NAME);
-					inject_status = TRUE;
 					private_field = TRUE;
 				}
 			}
@@ -2220,8 +2232,8 @@ LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T
 				{
 					ResumeThread(h_thread);
 					if (te32.th32ThreadID == tid)
-						WaitForSingleObject(h_thread, 5000);
-					CloseHandle(h_thread);
+						if (WaitForSingleObject(h_thread,1000) == WAIT_OBJECT_0)
+							CloseHandle(h_thread);
 
 					if (logs_enabled)
 					{
@@ -2253,6 +2265,7 @@ LPVOID injectShellCode(LPVOID lp_origshell_address, LPCVOID lp_shellcode, SIZE_T
 		{
 			addLog("%s -> returned status : %d\n", FUNC_NAME, inject_status);
 		}
+		private_field = FALSE;
 		return (LPVOID)inject_status;
 	}
 

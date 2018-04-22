@@ -1,6 +1,6 @@
 ![cover_logo](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/cover_logo.jpg?raw=true "")
 
-**_GTLibc_** is **[Game Trainer](https://en.wikipedia.org/wiki/Trainer_(games)) library for _c/c++ in windows_** it provides all the necessary methods to make simple game trainer in
+**_GT_**_Libc_ is **[Game Trainer](https://en.wikipedia.org/wiki/Trainer_(games)) library for _c/c++ in windows_** it provides all the necessary methods to make simple game trainer in
 windows using **WIN32-API** with ease.
 It uses only **WIN32-API** methods instead of **CRT** method because this is intended to work on **Windows** system only
 and not shall be portable or to target other OS like **_Linux_,_MAC OS_** etc.
@@ -15,31 +15,31 @@ and to provide a layer on top of **WIN-32 API** _cumbersome_ methods and to make
 
 ## Finding game : 
 
-Using **findGameProcess()** method.
+Using **GT_FindGameProcess()** method.
 
 ![finding_game_process](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/finding_game_process.jpg?raw=true "")
 
 
-Using **findGameWindow()** method.
+Using **GT_FindGameWindow()** method.
 
 ![finding_game_window](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/finding_game_window.jpg?raw=true "")
 
 
 ## Reading Values : 
 
-using **readAddress()** or **readAddressoffset()** methods.
+using **GT_ReadAddress()** or **GT_ReadAddressoffset()** methods.
 
 ![reading_memory](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/reading_memory.jpg?raw=true "")
 
 ## Writing Values : 
 
-using **writeAddress()** or **writeAddressOffset()** methods.
+using **GT_WriteAddress()** or **GT_WriteAddressOffset()** methods.
 
 ![writing_memory](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/writing_memory.jpg?raw=true "")
 
 ## Creating Hot-keys :
 
-using **hotKeysPressed()** **_MACRO_** or **isKeyPressed()/isKeyToggled()** methods.
+using **GT_HotKeysPressed()** **_MACRO_** or **GT_IsKeyPressed()/GT_IsKeyToggled()** methods.
 
 ![hotkeys](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/hotkeys.jpg?raw=true "")
 
@@ -47,32 +47,32 @@ using **hotKeysPressed()** **_MACRO_** or **isKeyPressed()/isKeyToggled()** meth
 
 ## Applying cheat codes : 
 
-using **setCheatCode()** method.
+using **GT_SetCheatCode()** method.
 
 ![set_cheat_code](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/set_cheat_code.jpg?raw=true "")
 
 ## Searching offset area : 
 
-using **searchOffsetArea()** method.
+using **GT_SearchOffsetArea()** method.
 
 ![search_offset_area](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/search_offset_area.jpg?raw=true "")
 
 ## Automation scripting  : 
 
-using **doMousePress()** and **doKeyPress()** methods.
+using **GT_DoMousePress()** and **GT_DoKeyPress()** methods.
 
 
 # GTlibc Logs and errors :
 
-## Multiple Games :
-**NOTE** If Multiple games are found then you have to upate the logic of getting input from user again!
+## GTConsole Library Error :
+If you tried to access methods of **GT**_Console_ library without using MACRO **_GT_BUILD_CLI_** you will get **undefined reference** error.
 
-![multiple_games_warning](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/multiple_games_warning.jpg?raw=true "")
+![gt_console_error](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/gtconsole_error.jpg?raw=true "")
 
 
 ## Error/Exception Handling :
 
-All the error/exception handling is done by library itself like if you tried read or write from **Invalid Memory section** or if process id,game handle/HWND are invalid  it will autmatically handle error and exits application with error code. So you dont have to check for any error.
+All the error/exception handling is done by library itself like if you tried read or write from **Invalid Memory section** or if process id,game handle/HWND are invalid  it will automatically handle error and exits application with error code. So you don't have to check for any error.
 
 ![game_not_found](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/game_not_found.jpg?raw=true "")
 
@@ -91,14 +91,14 @@ All **Public** and **Semi-Public** methods are accessible . But **Private** meth
 
 ## Library Logs :
 
-Logs are **disabled** by default but if you want library to maintain logs use **enableLogs()** method to **enable** logs.
-or if you want to **disable** logs again you can use **disableLogs()** method.
+Logs are **disabled** by default but if you want library to maintain logs use **GT_EnableLogs()** method to **enable** logs.
+or if you want to **disable** logs again you can use **GT_DisableLogs()** method.
 
 ![enable_disable_logs](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/enable_disable_logs.jpg?raw=true "")
 
 
 # Trainer Demo :
-As a demo of this library GTA-SA Trainer is included to show demo of all the methods needed and how to use them in making simple game trainer.
+As a demo of this library GTA-SA Trainer is included to show demo of all the **GT**Libc and **GT**Console methods and how to use them in making simple game trainer.
 
 # GTLibc Tutorial on YouTube :
 [![GTLibc Demo](https://img.youtube.com/vi/cRCnN987gd8/0.jpg)](https://www.youtube.com/watch?v=cRCnN987gd8)
@@ -108,14 +108,23 @@ All Public and Semi-Private methods are well documented.
 but private methods are not documented as it was not necessary to do so.
 
 **VERSION INFO :**<br/>
-GTLIBC Version : V 1.0. Dated : 23/03/2018.<br/>
-GTLIBC Version : V 1.1. Dated : 12/04/2018.<br/>
+GTLIBC Version : V 1.0  Dated : 23/03/2018.<br/>
+GTLIBC Version : V 1.1  Dated : 12/04/2018.<br/>
+GTLIBC Version : V 1.2  Dated : 23/04/2018.<br/>
 
-**CHANGE LOGS.** <br/>
+**CHANGE LOGS FOR V 1.1** <br/>
 **[+]** Added Custom **_procedure_** injection and **_shellcode_** injection methods for advanced game hacking. <br/>
 **[+]** Added Support for Microsoft's visual studio (_MSVC_ compiler) and for **Visual C/CPP**. <br/>
 **[+]** Added wrapper memory methods for better Memory management.  <br/>
 **[-]** Removed support for Multiple games found in memory. <br/>
 **[-]** Removed feature where application used to exit after showing Error. <br/>
+
+**CHANGE LOGS FOR V 1.2** <br/>
+**[+]** Added new **Console** UI integrated Library called **GT**_Console_.<br/>
+**[+]** Added **GT** Prefix to all methods to differentiate it from regular **WINAPI** Methods.<br/>
+**[+]** Time is now calculated from standard MACROS rather than WIN-API time methods. <br/>
+**[+]** Added Private Macros **_GT_BUILD_CLI_** for **GT**_Console_ library and **_GT_USE_SOUND_** to use Sound methods.<br/>
+**[+]** Changed try-catch prefix as-well to **gt**-_try_-**gt**-_catch_ to differentiate it from regular CPP try-catch.<br/>
+**[+]** Improved performance and removed buffer overflows.<br/>
 
 Written and maintained by HaseeB Mir (haseebmir.hm@gmail.com)

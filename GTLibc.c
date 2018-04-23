@@ -2311,7 +2311,7 @@ static DWORD GT_GetError(void)
 {
 	if (GT_IsPrivateMethod(gt_private_method, FUNC_NAME, LINE_NO))
 	{
-		if ((GetLastError() != ERROR_SUCCESS || GetLastError() == ERROR_ALREADY_EXISTS))
+		if (GetLastError() != ERROR_SUCCESS)
 		{
 			gt_error_code = GetLastError();
 		}

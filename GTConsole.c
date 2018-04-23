@@ -533,7 +533,7 @@ VOID GT_ShowLoadingBar(UINT bar_breadth, UINT bar_speed, UINT bar_color, UINT ba
 
 	INT height_index = NIL, breadth_index = -1, _bar_breadth = (INT)bar_breadth;
 	UINT bar_height = 2;
-	UCHAR loading_bar = 219; //ASCII code 219 � ( Block, graphic character )
+	UCHAR loading_bar = 219; //EASCII code 219 ( Block, graphic character )
 	gt_private_cmethod = TRUE;
 
 	gt_try
@@ -1217,8 +1217,9 @@ static BOOL GT_IsPrivateCMethod(BOOL gt_private_cmethod, LPCSTR proc_name, INT l
 
 static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border_x, UINT border_y, UINT border_color)
 {
-	LPCSTR upper_left_corner = "�", upper_right_corner = "�", border_breadth_char = "�", border_height_char = "�",
-		bottom_left_corner = "�", bottom_right_corner = "�";
+	//Border char's in EASCII values.
+	UCHAR upper_left_corner = 201, upper_right_corner = 187, border_breadth_char = 205, border_height_char = 186,
+		bottom_left_corner = 200, bottom_right_corner = 188;
 	INT index = 1;
 
 	border_breadth += ((border_height + 1) - 2); //Makes Perfect Square....
@@ -1238,7 +1239,7 @@ static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border
 
 
 		// Upper Left Corner
-		if (GT_WriteConsole(upper_left_corner) != lstrlen(upper_left_corner))
+		if (GT_WriteConsole("%c",upper_left_corner) != 1)
 		{
 			gt_private_cmethod = TRUE;
 			gt_throw(GT_GetCError());
@@ -1246,7 +1247,7 @@ static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border
 
 		while (index++ <= border_breadth)
 		{
-			if (GT_WriteConsole(border_breadth_char) != lstrlen(border_breadth_char)) // border breadth
+			if (GT_WriteConsole("%c",border_breadth_char) != 1) // border breadth
 			{
 				gt_private_cmethod = TRUE;
 				gt_throw(GT_GetCError());
@@ -1254,7 +1255,7 @@ static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border
 		}
 
 
-		if (GT_WriteConsole("%s\n",upper_right_corner) != lstrlen(upper_right_corner) + 1) //Upper Right Corner
+		if (GT_WriteConsole("%c\n",upper_right_corner) != 2) //Upper Right Corner
 		{
 			gt_private_cmethod = TRUE;
 			gt_throw(GT_GetCError());
@@ -1265,7 +1266,7 @@ static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border
 		{
 			GT_SetConsoleCursorXY(border_x,border_y + index); //Goto Left side of border
 
-			if (GT_WriteConsole(border_height_char) != lstrlen(border_height_char)) //border height
+			if (GT_WriteConsole("%c",border_height_char) != 1) //border height
 			{
 				gt_private_cmethod = TRUE;
 				gt_throw(GT_GetCError());
@@ -1274,7 +1275,7 @@ static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border
 
 			GT_SetConsoleCursorXY(border_breadth + (border_x + 1),border_y + (index++)); //Goto Right Side of border
 
-			if (GT_WriteConsole(border_height_char) != lstrlen(border_height_char)) //border height
+			if (GT_WriteConsole("%c",border_height_char) != 1) //border height
 			{
 				gt_private_cmethod = TRUE;
 				gt_throw(GT_GetCError());
@@ -1293,20 +1294,20 @@ static VOID GT_CreateBorder(UINT border_height, UINT border_breadth, UINT border
 
 		GT_SetConsoleCursorXY(border_x,border_y + border_height);
 
-		if (GT_WriteConsole(bottom_left_corner) != lstrlen(bottom_left_corner))  //Bottom left corner
+		if (GT_WriteConsole("%c",bottom_left_corner) != 1)  //Bottom left corner
 		{
 			gt_private_cmethod = TRUE;
 			gt_throw(GT_GetCError());
 		}
 
 		while (index++ <= border_breadth)
-			if (GT_WriteConsole(border_breadth_char) != lstrlen(border_breadth_char)) //border_breadth
+			if (GT_WriteConsole("%c",border_breadth_char) != 1) //border_breadth
 			{
 				gt_private_cmethod = TRUE;
 				gt_throw(GT_GetCError());
 			}
 
-		if (GT_WriteConsole("%s\n",bottom_right_corner) != lstrlen(bottom_right_corner) + 1)  //Bottom Right Corner
+		if (GT_WriteConsole("%c\n",bottom_right_corner) != 2)  //Bottom Right Corner
 		{
 			gt_private_cmethod = TRUE;
 			gt_throw(GT_GetCError());

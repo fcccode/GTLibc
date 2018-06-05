@@ -10,6 +10,8 @@ and not shall be portable or to target other OS like **_Linux_,_MAC OS_** etc.
 **AIM** : The aim of this library is only to provide the most efficient way of creating game trainer 
 and to provide a layer on top of **WIN-32 API** _cumbersome_ methods and to make reading/writing ,finding Game process easier and convenient.
 
+## **_Your support is needed to keep this project alive, Feel free to donate._**
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=GAS9SD3H7DYGY)
 
 # Main Components :
 

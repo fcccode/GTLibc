@@ -3,7 +3,7 @@
 
 /*
 BRIEF : GTConsole is library to make intuitive and clean UI for (Console based) Game trainer.
-It contains all useful methods needed to make UI for CLI based Game trainer, 
+It contains all useful methods needed to make UI for CLI based Game trainer,
 it uses WIN-32 API internally to provide layer over it.
 
 AIM : The aim of this library is only to provide the most efficient way of creating intuitive and clean UI for (Console based) game trainer
@@ -28,11 +28,11 @@ and to provide a layer on top of WIN-32 API cumbersome console methods and to ma
 5)Console/Window Handle : Get Console Standard handle or Console Window handle --> use GT_GetConsoleStdHandle(), GT_GetConsoleWindowHandle() methods.
 6)Formatted Text :  Read/Write/Blink formatted text --> use GT_BlinkConsoleText(), GT_ReadConsole(), GT_WriteConsole() methods.
 7)Trainer specific :  Create Trainer menu or play/stop sound --> Use GT_CreateMenu(), GT_PlaySound(), GT_StopSound methods.
- 
-NOTE : This is standalone library and this doesn't need GTLibc to work, it can be included alone in project ,
-or if you want to use with GTLibc then define GT_BUILD_CLI and include GTLibc only. 
 
-PS :  To use GT_PlaySound() method use private macro GT_USE_SOUND to enable 
+NOTE : This is standalone library and this doesn't need GTLibc to work, it can be included alone in project ,
+or if you want to use with GTLibc then define GT_BUILD_CLI and include GTLibc only.
+
+PS :  To use GT_PlaySound() method use private macro GT_USE_SOUND to enable
 and include this flag '-lwinmm' (without quotes) in compiler options
 
 
@@ -79,35 +79,31 @@ Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 #endif
 
 /*Enum to store Foreground colors*/
-typedef enum FG_COLORS 
-{
+typedef enum FG_COLORS {
     FG_BLACK = 0,FG_BLUE = 1,FG_GREEN = 2,FG_CYAN = 3,FG_RED = 4,
-	FG_MAGENTA = 5,FG_BROWN = 6,FG_LIGHTGRAY = 7,FG_GRAY = 8,
-	FG_LIGHTBLUE = 9,FG_LIGHTGREEN = 10,FG_LIGHTCYAN = 11,FG_LIGHTRED = 12,
-	FG_LIGHTMAGENTA = 13,FG_YELLOW = 14,FG_WHITE = 15
-}FG_COLORS;
+    FG_MAGENTA = 5,FG_BROWN = 6,FG_LIGHTGRAY = 7,FG_GRAY = 8,
+    FG_LIGHTBLUE = 9,FG_LIGHTGREEN = 10,FG_LIGHTCYAN = 11,FG_LIGHTRED = 12,
+    FG_LIGHTMAGENTA = 13,FG_YELLOW = 14,FG_WHITE = 15
+} FG_COLORS;
 
 /*Enum to store Background colors*/
-typedef enum BG_COLORS 
-{
+typedef enum BG_COLORS {
     BG_NAVYBLUE = 16,BG_GREEN = 32,BG_TEAL = 48,
     BG_MAROON = 64,BG_PURPLE = 80,BG_OLIVE = 96,
     BG_SILVER = 112,BG_GRAY = 128,BG_BLUE = 144,
-	BG_LIME = 160,BG_CYAN = 176,BG_RED = 192,
-	BG_MAGENTA = 208,BG_YELLOW = 224,BG_WHITE = 240
-}BG_COLORS;
+    BG_LIME = 160,BG_CYAN = 176,BG_RED = 192,
+    BG_MAGENTA = 208,BG_YELLOW = 224,BG_WHITE = 240
+} BG_COLORS;
 
 /*Enum to store window parameter*/
-enum WINDOW_PARAM
-{
-	WP_WINDOW_SIZE = 1,WP_WINDOW_CURSOR_POS = 2,
-	WP_WINDOW_ATTRIBS = 4,WP_WINDOW_RECT = 8,WP_WINDOW_MAX_SIZE = 16
+enum WINDOW_PARAM {
+    WP_WINDOW_SIZE = 1,WP_WINDOW_CURSOR_POS = 2,
+    WP_WINDOW_ATTRIBS = 4,WP_WINDOW_RECT = 8,WP_WINDOW_MAX_SIZE = 16
 };
 
 /*Enum to store console data-type for reading*/
-enum CONSOLE_READ_TYPE
-{
-	CONSOLE_READ_CHAR,CONSOLE_READ_INT,CONSOLE_READ_STR	
+enum CONSOLE_READ_TYPE {
+    CONSOLE_READ_CHAR,CONSOLE_READ_INT,CONSOLE_READ_STR
 };
 
 /*===========================*/
@@ -118,7 +114,7 @@ enum CONSOLE_READ_TYPE
 BOOL GT_SetConsoleTextColor(WORD);
 BOOL GT_SetConsoleBGColor(WORD);
 BOOL GT_ClearConsoleText(SHORT,SHORT,SIZE_T);
-VOID GT_ClearConsole(VOID); 
+VOID GT_ClearConsole(VOID);
 
 /*Public Window methods.*/
 BOOL GT_SetWindowTitle(LPCSTR);
@@ -192,4 +188,4 @@ extern DWORD gt_cerror_code;
 /*Global variable for Setting private methods inaccessible*/
 extern BOOL gt_private_cmethod;
 
-#endif 
+#endif

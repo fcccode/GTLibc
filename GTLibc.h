@@ -30,11 +30,11 @@ From the beginning of trainer development till end, it provides all necessary me
 ****Advanced components for Game Hacking.*****
 **********************************************
 
-8)Custom code injection tool included in this library --> use GT_InjectCode()/GT_InjectCodes() methods.
+8)Opcode injection tool included in this library --> use GT_InjectOpcode()/GT_InjectOpcodes() methods.
 9)NOP instruction Filling tool included in this library --> use GT_WriteNOP()/GT_WriteNOPs() methods.
 10)Write JMP/CALL assembly instruction --> use  GT_WriteJmpOrCall() method.
-11)Custom procedure injection tool included in this library --> use GT_InjectProc() method.
-12)Custom shellcode injection tool included in this library --> use GT_InjectShellCode() method.
+11)Shellcode injection tool included in this library --> use GT_InjectShellCode() method.
+12)DLL injection tool included in this library --> use GT_InjectDLL() method.
 
 NOTE : This ain't memory scanning,hooking,analyzing library, it won't provide methods for scanning/signature or dumping RAW memory.
 
@@ -55,18 +55,24 @@ WHATS NEW IN THIS VERSION  v1.1 :
 [-] Removed support for Multiple games found in memory.
 [-] Removed feature where application used to exit after showing Error.
 
-WHATS NEW IN THIS VERSION  V 1.2 
+WHATS NEW IN THIS VERSION  V 1.2 :
 [+] Added new Console UI integrated Library.
 [+] Added GT Prefix to all methods to differentiate it from regular WINAPI Methods.
-[+] Current time is now calculated from standard MACROS rather than WIN-API time methods. 
+[+] Current time is now calculated from standard MACROS rather than WIN-API time methods.
 [+] Added Private Macros GT_BUILD_CLI for GTConsole library and GT_USE_SOUND to use sound methods.
 [+] Changed try-catch prefix as-well to gt_try-gt-catch to differentiate it from regular CPP try-catch.
 [+] Improved performance and removed buffer overflows.
 
+WHATS NEW IN THIS VERSION  V 1.3 :
+[+] Added architecture/machine detection support.
+[+] Added 64-bit support for shellcode injection.
+[+] Added advanced hacking method DLL injection.
+[+] Improved logs detection method.
 
 V 1.0 -> Dated : 23/03/2018
 V 1.1 -> Dated : 11/04/2018
 V 1.2 -> Dated : 23/04/2018
+V 1.3 -> Dated : 12/08/2018
 
 Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 */
@@ -76,7 +82,7 @@ Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 #undef UNICODE
 #endif
 
-#ifdef GT_BUILD_CLI 
+#ifdef GT_BUILD_CLI
 #include "GTConsole.c"
 #endif
 
@@ -104,6 +110,14 @@ Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 #define CURR_DATE __DATE__
 #define CURR_TIME __TIME__
 
+/*Defining Architecture Build Type*/
+#if defined(_WIN64)
+#define BUILD_ARCH_64
+
+#elif defined(_WIN32)
+#define BUILD_ARCH_32
+#endif
+
 /*Defining exception handling constants*/
 #if !defined(gt_try) && !defined(gt_catch) && !defined(gt_throw)
 #define gt_try BOOL GT_HadError=FALSE;
@@ -113,17 +127,16 @@ Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 
 /*Enum for OPCODE type*/
 typedef enum GT_OPCODE {
-	GT_OPCODE_SHORT_JUMP = 0x1,
-	GT_OPCODE_NEAR_JUMP = 0x2,
-	GT_OPCODE_CALL = 0x3
-}GT_OPCODE;
+    GT_OP_SHORT_JUMP = 0x1,
+    GT_OP_NEAR_JUMP = 0x2,
+    GT_OP_CALL = 0x3
+} GT_OPCODE;
 
 /*Enum for SHELLCODE type*/
-typedef enum GT_SHELL
-{
-	GT_ORIGINAL_SHELL,
-	GT_PATCHED_SHELL,
-}GT_SHELL; 
+typedef enum GT_SHELL {
+    GT_ORIGINAL_SHELL,
+    GT_PATCHED_SHELL,
+} GT_SHELL;
 
 
 /****************************************************************************/
@@ -172,9 +185,10 @@ VOID GT_SetCheatCode(LPCSTR);
 /*Semi-private Tool for searching in offset area*/
 LPSTR GT_SearchOffsetArea(LPVOID, CONST size_t, CONST size_t, DWORD);
 
-/*Semi-private Tool for Injecting custom code*/
-BOOL GT_InjectCode(LPVOID, LPCVOID, SIZE_T);
-BOOL GT_InjectCodes(LPVOID[], LPBYTE[], SIZE_T[], SIZE_T);
+/*Semi-private Tool for Injecting custom code/DLL*/
+BOOL GT_InjectOpcode(LPVOID, LPCVOID, SIZE_T);
+BOOL GT_InjectOpcodes(LPVOID[], LPBYTE[], SIZE_T[], SIZE_T);
+BOOL GT_InjectDLL(LPCSTR,LPCSTR);
 
 /*Semi-private Tool for writing assembly NOP instruction*/
 BOOL GT_WriteNOP(LPVOID, SIZE_T);
@@ -183,11 +197,8 @@ BOOL GT_WriteNOPs(LPVOID[], SIZE_T[], SIZE_T);
 /*Semi-private Tool for writing assembly JMP or CALL instruction*/
 BOOL GT_WriteJmpOrCall(LPVOID, LPVOID, GT_OPCODE, UINT);
 
-/*Semi-private Tool for injecting custom Procedure into game*/
-LPVOID GT_InjectProc(LPVOID, LPCVOID, SIZE_T, UINT,GT_SHELL,GT_OPCODE);
-
 /*Semi-private Tool for injecting custom shellcode into game*/
-LPVOID GT_InjectShellCode(LPVOID,LPCVOID, SIZE_T,GT_SHELL,GT_OPCODE);
+LPVOID GT_InjectShellCode(LPVOID, LPCVOID, SIZE_T, UINT,GT_SHELL,GT_OPCODE);
 
 /*Semi private method for enabling/disabling Logs*/
 BOOL GT_EnableLogs(VOID);
@@ -214,6 +225,7 @@ static VOID GT_SetGameHWND(DWORD);
 
 /*Private utility methods for Logs*/
 static VOID GT_AddLog(LPCSTR, ...);
+static BOOL GT_IsLogEnabled();
 static BOOL GT_FileExist(LPCSTR);
 
 /*Private memory allocation wrapper methods*/
@@ -224,6 +236,10 @@ BOOL GT_MemFree(LPVOID);
 static VOID GT_DoVirtualKeyPress(INT, INT, INT);
 static BOOL CALLBACK GT_EnumAllWindows(HWND, LPARAM);
 static BOOL GT_IsPrivateMethod(BOOL, LPCSTR, INT);
+static LPCSTR GT_BoolAlpha(BOOL);
+
+/*Private core method for injecting shell.*/
+static LPVOID GT_InjectShell(LPVOID,LPCVOID, SIZE_T,GT_SHELL,GT_OPCODE);
 
 /*Global variables for storing game information*/
 extern DWORD gt_process_id;

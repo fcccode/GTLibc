@@ -59,6 +59,26 @@ using **GT_SearchOffsetArea()** method.
 
 ![search_offset_area](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/search_offset_area.jpg?raw=true "")
 
+# Advanced game hacking methods.
+
+## Injecting Opcode(s) into game : 
+
+using **GT_InjectOpcode()/GT_InjectOpcodes()** method.
+
+![inject_opcode](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/inject_opcode.jpg?raw=true "")
+
+## Injecting Shellcode into game : 
+
+using **GT_InjectShellCode()** method.
+
+![inject_shellcode](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/inject_shellcode.jpg?raw=true "")
+
+## Injecting DLL into game : 
+
+using **GT_InjectDLL()** method.
+
+![inject_dll](https://github.com/haseeb-heaven/GTLibc/blob/master/resources/inject_dll.jpg?raw=true "")
+
 ## Automation scripting  : 
 
 using **GT_DoMousePress()** and **GT_DoKeyPress()** methods.
@@ -128,5 +148,11 @@ GTLIBC Version : V 1.2  Dated : 23/04/2018.<br/>
 **[+]** Added Private Macros **_GT_BUILD_CLI_** for **GT**_Console_ library and **_GT_USE_SOUND_** to use Sound methods.<br/>
 **[+]** Changed try-catch prefix as-well to **gt**-_try_-**gt**-_catch_ to differentiate it from regular CPP try-catch.<br/>
 **[+]** Improved performance and removed buffer overflows.<br/>
+
+**CHANGE LOGS FOR V 1.3** <br/>
+**[+]** Added architecture/machine detection support.<br/>
+**[+]** Added 64-bit support for shellcode injection.<br/>
+**[+]** Added advanced hacking method DLL injection.<br/>
+**[+]** Improved logs detection method.<br/>
 
 Written and maintained by HaseeB Mir (haseebmir.hm@gmail.com)

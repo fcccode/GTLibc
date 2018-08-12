@@ -8,7 +8,7 @@
 #define TRAINER_BG FG_BLACK
 
 /*@anony enum for enable/disable COLORS options*/
-enum {ENABLE_COLOR = FG_LIGHTGREEN  | TRAINER_BG ,DISABLE_COLOR = FG_LIGHTRED  | TRAINER_BG , STATUS_COLOR = TRAINER_FG  | TRAINER_BG };
+enum {ENABLE_COLOR = FG_LIGHTGREEN  | TRAINER_BG,DISABLE_COLOR = FG_LIGHTRED  | TRAINER_BG, STATUS_COLOR = TRAINER_FG  | TRAINER_BG };
 
 /*@anony enum for status options*/
 enum {STATUS_ENABLE,STATUS_DISABLE};
@@ -39,9 +39,8 @@ UINT status_type = NIL,status_len = NIL;
 LPCSTR enable_path = "resources\\enable_sfx.wav",disable_path = "resources\\disable_sfx.wav",loading_path = "resources\\loading_sfx.wav";
 
 int main()
-{	
-    if(initGameTrainer())
-    {
+{
+    if(initGameTrainer()) {
         //initialize complete now run game trainer.
         runGameTrainer();
     }
@@ -57,34 +56,33 @@ BOOL initGameTrainer()
     HANDLE game_handle = NULL;
     BOOL game_found = FALSE;
     LPCSTR game_name = "gta_sa", window_name = "GTA_SA +6 Trainer - Ha5eeB";
-	
+
     //Making GTA:SA trainer example.
     //Open game and get process id, handle and base address.
     game_handle = GT_FindGameProcess(game_name);
-    if (game_handle != NULL)
-    {   	
-   		/*Set window properties*/
-		    
-		//set console background color.
-		GT_SetConsoleBGColor(TRAINER_BG);
-				
+    if (game_handle != NULL) {
+        /*Set window properties*/
+
+        //set console background color.
+        GT_SetConsoleBGColor(TRAINER_BG);
+
         //Set console windows text.
         GT_SetWindowTitle(window_name);
         GT_SetConsoleTextColor(TRAINER_FG  | TRAINER_BG );
 
         //set console window size.
         GT_ResizeWindow(250,250,485,600);
-		
+
         //set console window style.
-		GT_DisableWindowStyle(GWL_STYLE,WS_SIZEBOX | WS_MAXIMIZEBOX);
-		
+        GT_DisableWindowStyle(GWL_STYLE,WS_SIZEBOX | WS_MAXIMIZEBOX);
+
         //remove vertical scroll bar.
         GT_DisableWindowScrollbar(WS_VSCROLL);
 
         //remove blinking cursor.
         GT_ShowConsoleCursor(FALSE);
-         
-		/*Get process ID handle etc*/        
+
+        /*Get process ID handle etc*/
         processID = GT_GetProcessID();
         game_handle = GT_GetGameHandle();
         base_address = GT_GetGameBaseAddress(processID);
@@ -93,8 +91,7 @@ BOOL initGameTrainer()
 
 
     //check for valid process ID and print game info.
-    if (processID != 0)
-    {
+    if (processID != 0) {
         game_found = TRUE;
         //GT_WriteConsole("Game Found %s\n",GT_GetGameName());
         //GT_WriteConsole("processID = %d\ngame_handle : %p\n\n", processID,game_handle);
@@ -127,50 +124,47 @@ void runGameTrainer()
     /***********************************************/
     /****************GTA-SA TRAINER*****************/
     /***********************************************/
-    
-	//Trainer Menu variables.	  
-    LPCSTR lp_menu_items[] ={"Unlimited Money","Unlimited Health","Unlimited Ammo","Nutter Tools","Thug Tools","Professional Tools","Exit Trainer"};
+
+    //Trainer Menu variables.
+    LPCSTR lp_menu_items[] = {"Unlimited Money","Unlimited Health","Unlimited Ammo","Nutter Tools","Thug Tools","Professional Tools","Exit Trainer"};
     LPCSTR lp_hotkey_items[] = {"[F4]\n","[F5]\n","[F6]\n","[F7]\n","[F8]\n","[F9]\n","[INSERT]\n"};
     LPCSTR lp_menu_separators[] = {"\t\t","\t","\t\t","\t\t","\t\t","\t","\t\t"};
-    SIZE_T sz_menu = sizeof(lp_menu_items) / sizeof(lp_menu_items[0]);	 	
- 
-	WORD menu_colors[sz_menu],hkey_colors[sz_menu];
-	SHORT op_x[sz_menu],op_y[sz_menu];
-	
-	/*Co-ordinates of hotkeys options*/
-	COORD hkey_coords = {24,2};
-	
-	//Fill menu with same options for color and x,y co-ordinates.
-	FillMemory(menu_colors,sizeof(menu_colors),ENABLE_COLOR);
-	FillMemory(hkey_colors,sizeof(hkey_colors),DISABLE_COLOR);
-	FillMemory(op_x,sizeof(op_x),-1);
-	FillMemory(op_y,sizeof(op_y),-1);
-	
-	
+    SIZE_T sz_menu = sizeof(lp_menu_items) / sizeof(lp_menu_items[0]);
+
+    WORD menu_colors[sz_menu],hkey_colors[sz_menu];
+    SHORT op_x[sz_menu],op_y[sz_menu];
+
+    /*Co-ordinates of hotkeys options*/
+    COORD hkey_coords = {24,2};
+
+    //Fill menu with same options for color and x,y co-ordinates.
+    FillMemory(menu_colors,sizeof(menu_colors),ENABLE_COLOR);
+    FillMemory(hkey_colors,sizeof(hkey_colors),DISABLE_COLOR);
+    FillMemory(op_x,sizeof(op_x),-1);
+    FillMemory(op_y,sizeof(op_y),-1);
+
+
     //Printing Heading.
     GT_SetConsoleTextColor(TRAINER_FG  | TRAINER_BG);
-	GT_WriteConsoleXY(5,0,"GTA-SA +6 TRAINER (V 1.0.0)\n\n");
-	
-	//create Menu items and hotkeys.
-	GT_CreateMenu(lp_menu_items,lp_hotkey_items,lp_menu_separators,sz_menu,menu_colors,hkey_colors,op_x,op_y);
-	
-	
+    GT_WriteConsoleXY(5,0,"GTA-SA +6 TRAINER (V 1.0.0)\n\n");
+
+    //create Menu items and hotkeys.
+    GT_CreateMenu(lp_menu_items,lp_hotkey_items,lp_menu_separators,sz_menu,menu_colors,hkey_colors,op_x,op_y);
+
+
     //Cheats list for weapons set.
     char *weapons_cheats[] = {"UZUMYMW","LXGIWYL","KJKSZPJ"};
 
     //running main game loop.
-    while(TRUE)
-    {
+    while(TRUE) {
 
         //Applying unlimited money,health and ammo .
 
-        if(GT_IsKeyToggled(VK_F4))
-        {
-            if(setUnlimitedMoney())
-            {
-            	status = "[+]Money Enabled!";
-            	status_type = STATUS_ENABLE;
-                
+        if(GT_IsKeyToggled(VK_F4)) {
+            if(setUnlimitedMoney()) {
+                status = "[+]Money Enabled!";
+                status_type = STATUS_ENABLE;
+
                 //change hotkey COLORS to enable and play enable sound.
                 GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y,"[F4]");
                 GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
@@ -178,26 +172,22 @@ void runGameTrainer()
             }
         }
 
-        else if(GT_IsKeyToggled(VK_F5))
-        {
-            if(setUnlimitedHealth())
-            {
-            	status = "[+]Health Enabled!";
-            	status_type = STATUS_ENABLE;
-                
+        else if(GT_IsKeyToggled(VK_F5)) {
+            if(setUnlimitedHealth()) {
+                status = "[+]Health Enabled!";
+                status_type = STATUS_ENABLE;
+
                 //change hotkey COLORS to enable and play enable sound.
                 GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y + 1,"[F5]");
                 GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
-            }       
+            }
         }
 
-        else if(GT_IsKeyToggled(VK_F6))
-        {
-            if(setUnlimitedAmmo())
-           	{
-            	status = "[+]Ammo Enabled!";
-            	status_type = STATUS_ENABLE;
-                
+        else if(GT_IsKeyToggled(VK_F6)) {
+            if(setUnlimitedAmmo()) {
+                status = "[+]Ammo Enabled!";
+                status_type = STATUS_ENABLE;
+
                 //change hotkey COLORS to enable and play enable sound.
                 GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y + 2,"[F6]");
                 GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
@@ -205,48 +195,44 @@ void runGameTrainer()
         }
 
         //Applying weapons cheat codes.
-        else if(GT_IsKeyToggled(VK_F7))
-        {
+        else if(GT_IsKeyToggled(VK_F7)) {
             GT_SetCheatCode(weapons_cheats[NUTTER_TOOLS]);
-      		status = "[+]Nutter tools Enabled!";
-       		status_type = STATUS_ENABLE;
-                
-         	//change hotkey COLORS to enable and play enable sound.
-         	GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y + 3,"[F7]");
-          	GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
+            status = "[+]Nutter tools Enabled!";
+            status_type = STATUS_ENABLE;
+
+            //change hotkey COLORS to enable and play enable sound.
+            GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y + 3,"[F7]");
+            GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
         }
 
-        else if(GT_IsKeyToggled(VK_F8))
-        {
+        else if(GT_IsKeyToggled(VK_F8)) {
             GT_SetCheatCode(weapons_cheats[THUG_TOOLS]);
-      		status = "[+]Thug tools Enabled!";
-       		status_type = STATUS_ENABLE;
-                
-         	//change hotkey COLORS to enable and play enable sound.
-         	GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y + 4,"[F8]");
-          	GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
-            
+            status = "[+]Thug tools Enabled!";
+            status_type = STATUS_ENABLE;
+
+            //change hotkey COLORS to enable and play enable sound.
+            GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y + 4,"[F8]");
+            GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
+
         }
 
-        else if(GT_IsKeyToggled(VK_F9))
-        {
+        else if(GT_IsKeyToggled(VK_F9)) {
             GT_SetCheatCode(weapons_cheats[PROFESSIONAL_TOOLS]);
-      		status = "[+]Prof. tools Enabled!";
-       		status_type = STATUS_ENABLE;
-                
-         	//change hotkey COLORS to enable and play enable sound.
-         	GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y  + 5,"[F9]");
-          	GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
+            status = "[+]Prof. tools Enabled!";
+            status_type = STATUS_ENABLE;
+
+            //change hotkey COLORS to enable and play enable sound.
+            GT_WriteConsoleXY(hkey_coords.X,hkey_coords.Y  + 5,"[F9]");
+            GT_PlaySound(enable_path,SND_FILENAME | SND_ASYNC);
         }
 
-        else if(GT_IsKeyToggled(VK_INSERT))
-        {
-   	    	GT_WriteConsoleXY(0,9,"Trainer created using GTLibc ");
+        else if(GT_IsKeyToggled(VK_INSERT)) {
+            GT_WriteConsoleXY(0,9,"Trainer created using GTLibc ");
             break;
         }
-    
-     //print status info.
-     showStatus(status,status_type);    
+
+        //print status info.
+        showStatus(status,status_type);
     }
 }
 
@@ -269,7 +255,7 @@ BOOL setUnlimitedAmmo()
 {
 
     DWORD unlimited_ammo = 0x7FFFFFFFUL;
-	BOOL write_status = FALSE;
+    BOOL write_status = FALSE;
     //list of weapons and clips offsets from base weapon address.
     static DWORD weapons_offsets[] = {0x0,0x4,0x1C,0x20,0x38,0x3C,0x54,0x58,0x74,0x90,0xAC,0xC4,0xC8};
     size_t offsets_size = sizeof(weapons_offsets);
@@ -277,8 +263,7 @@ BOOL setUnlimitedAmmo()
     //GT_ReadAddressOffsets example.
     DWORD *ammos_list = GT_ReadAddressOffsets(weapon_base_address,weapons_offsets,offsets_size);
 
-    if(ammos_list == NULL)
-    {
+    if(ammos_list == NULL) {
         GT_WriteConsole("ammos_list is NULL, error code : 0x%X\n",GetLastError());
     }
 
@@ -291,15 +276,14 @@ BOOL setUnlimitedAmmo()
     write_status = GT_WriteAddressOffsets(weapon_base_address,weapons_offsets,offsets_size,unlimited_ammo);
 
     //free memory using HeapFree() example.
-    if(!HeapFree(GetProcessHeap(),NIL,ammos_list))
-    {
+    if(!HeapFree(GetProcessHeap(),NIL,ammos_list)) {
         GT_WriteConsole("Error while freeing memory, error code : 0x%X\n",GetLastError());
 
         DWORD exit_value;
         GetExitCodeProcess(GetCurrentProcess(),&exit_value);
         ExitProcess(exit_value);
     }
-    
+
     return write_status;
 }
 
@@ -307,20 +291,18 @@ void showStatus(LPSTR status,UINT status_type)
 {
     UINT sz_status = lstrlen(status);
 
-    if(sz_status > 0)
-    {
-        if(sz_status < status_len)
-        {
-        	//clear status.
+    if(sz_status > 0) {
+        if(sz_status < status_len) {
+            //clear status.
             GT_ClearConsoleText(10,11,status_len);
         }
     }
-	
-	//print status static text.
+
+    //print status static text.
     GT_SetConsoleTextColor(STATUS_COLOR);
     GT_WriteConsoleXY(0,11,"Status : ");
-	
-	//print status message.
+
+    //print status message.
     (status_type == STATUS_ENABLE) ? GT_SetConsoleTextColor(ENABLE_COLOR) : (status_type == STATUS_DISABLE) ? GT_SetConsoleTextColor(DISABLE_COLOR) : GT_SetConsoleTextColor(TRAINER_FG  | TRAINER_BG );
     GT_WriteConsole("%s",status);
 
@@ -332,14 +314,12 @@ void showStatus(LPSTR status,UINT status_type)
 //Example of FindGame by Process name.
 void testProcess()
 {
-	//enabling/disabling logs example.
-    if(GT_EnableLogs())
-    {
+    //enabling/disabling logs example.
+    if(GT_EnableLogs()) {
         GT_WriteConsole("GTLibc Logs are enabled in this trainer.\n");
     }
 
-    else if(GT_DisableLogs())
-    {
+    else if(GT_DisableLogs()) {
         GT_WriteConsole("GTLibc Logs are disabled in this trainer.\n");
     }
 
@@ -351,17 +331,15 @@ void testProcess()
     char g_name[MAX_PATH] = {NUL};
     GT_WriteConsole("Enter process/game name to open\n");
     GT_ReadConsole(g_name,sizeof(g_name),CONSOLE_READ_STR);
-	
+
     //find game by process name.
     game_handle = GT_FindGameProcess(g_name);
-    if(game_handle != NULL)
-    {
+    if(game_handle != NULL) {
         processID = GT_GetProcessID();
         g_hwnd = GT_GetGameHWND();
     }
 
-    if (processID != 0)
-    {
+    if (processID != 0) {
         GT_WriteConsole("Name : %s\tprocessID = %d\n",GT_GetGameName(),processID);
         GT_WriteConsole("Game handle = %p\nGame HWND = %p\n", game_handle,g_hwnd);
     }
@@ -380,8 +358,7 @@ void testWindow()
 
     HWND g_hwnd = GT_FindGameWindow(g_window);
 
-    if (g_hwnd != NULL)
-    {
+    if (g_hwnd != NULL) {
         game_handle = GT_GetGameHandle4mHWND(g_hwnd);
         processID = GT_GetProcessID4mHWND(g_hwnd);
 
@@ -402,16 +379,13 @@ void testSearch()
     GT_WriteConsole("%s\n",search_list);
 
     //free memory from search list after printing using HeapFree() method.
-    if(search_list == NULL)
-    {
+    if(search_list == NULL) {
         GT_WriteConsole("Search list is NULL, error code : 0x%X\n",GetLastError());
     }
 
     //if error occurred while freeing then exit with error code.
-    else
-    {
-        if(!HeapFree(GetProcessHeap(),NIL,search_list))
-        {
+    else {
+        if(!HeapFree(GetProcessHeap(),NIL,search_list)) {
             GT_WriteConsole("Error while freeing memory, error code : 0x%X\n",GetLastError());
         }
     }

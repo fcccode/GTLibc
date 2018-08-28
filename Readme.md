@@ -155,4 +155,9 @@ GTLIBC Version : V 1.2  Dated : 23/04/2018.<br/>
 **[+]** Added advanced hacking method DLL injection.<br/>
 **[+]** Improved logs detection method.<br/>
 
+**CHANGE LOGS FOR V 1.4** <br/>
+**[+]** Added support for reading and writing Float values.<br/>
+**[+]** Improved all read/write methods to adapt generic data types.<br/>
+**[+]** Added new Macros for NULL and NIL.<br/>
+
 Written and maintained by HaseeB Mir (haseebmir.hm@gmail.com)

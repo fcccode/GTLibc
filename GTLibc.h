@@ -69,10 +69,16 @@ WHATS NEW IN THIS VERSION  V 1.3 :
 [+] Added advanced hacking method DLL injection.
 [+] Improved logs detection method.
 
+WHATS NEW IN THIS VERSION  V 1.4 :
+[+] Added support for reading and writing Float values.
+[+] Improved all read/write methods to adapt generic data types.
+[+] Added new Macros for NULL and NIL.
+
 V 1.0 -> Dated : 23/03/2018
 V 1.1 -> Dated : 11/04/2018
 V 1.2 -> Dated : 23/04/2018
 V 1.3 -> Dated : 12/08/2018
+V 1.4 -> Dated : 28/08/2018
 
 Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 */
@@ -94,9 +100,13 @@ Written by Ha5eeB Mir (haseebmir.hm@gmail.com)
 #include <windows.h>
 #include <tlhelp32.h>
 
-/*Defining NULL constants*/
-#define NIL 0x0 	/*Integer NULL*/
-#define NUL '\0' 	/*Character NULL*/
+/*Defining NULL and NAN constants*/
+#define GT_NIL 0x0 	/*Integer NULL*/
+#define GT_NUL '\0' 	/*Character NULL*/
+#define GT_NULL ((void *)0) /*Pointer NULL*/
+//#define GT_NANF ((float *)(0.0f/0.0f)) /*Float NAN*/
+//#define GT_NAND ((double *)(0.0/0.0)) /*Double NAN*/
+
 #define GT_HotKeysPressed(...) GT_HotKeysDown(__VA_ARGS__, NULL)
 
 /*Re-Defining standard constants*/
@@ -138,7 +148,6 @@ typedef enum GT_SHELL {
     GT_PATCHED_SHELL,
 } GT_SHELL;
 
-
 /****************************************************************************/
 /*********************-PUBLIC-METHODS-***************************************/
 /****************************************************************************/
@@ -147,18 +156,18 @@ HANDLE GT_FindGameProcess(LPCSTR);
 HWND GT_FindGameWindow(LPCSTR);
 
 /*Public methods to Read/Write values from/at Address.*/
-DWORD GT_ReadAddress(LPVOID);
-DWORD GT_ReadAddressOffset(LPVOID, DWORD);
-DWORD* GT_ReadAddressOffsets(LPVOID, DWORD*, SIZE_T);
-BOOL GT_WriteAddress(LPVOID, DWORD);
-BOOL GT_WriteAddressOffset(LPVOID, DWORD, DWORD);
-BOOL GT_WriteAddressOffsets(LPVOID, DWORD*, SIZE_T, DWORD);
+LPVOID GT_ReadAddress(LPVOID);
+LPVOID GT_ReadAddressOffset(LPVOID,DWORD);
+LPVOID GT_ReadAddressOffsets(LPVOID,DWORD*, SIZE_T);
+BOOL GT_WriteAddress(LPVOID,LPVOID);
+BOOL GT_WriteAddressOffset(LPVOID,DWORD,LPVOID);
+BOOL GT_WriteAddressOffsets(LPVOID,DWORD*, SIZE_T, LPVOID);
 
 /*Public methods to Read/Write pointer from/at Address.*/
-LPVOID GT_ReadPointerOffset(LPVOID, DWORD);
-LPVOID GT_ReadPointerOffsets(LPVOID, DWORD*, SIZE_T);
-BOOL GT_WritePointerOffset(LPVOID, DWORD, DWORD);
-BOOL GT_WritePointerOffsets(LPVOID, DWORD*, SIZE_T, DWORD);
+LPVOID GT_ReadPointerOffset(LPVOID,DWORD);
+LPVOID GT_ReadPointerOffsets(LPVOID,DWORD*,SIZE_T);
+BOOL GT_WritePointerOffset(LPVOID,DWORD,LPVOID);
+BOOL GT_WritePointerOffsets(LPVOID,DWORD*,SIZE_T,LPVOID);
 
 /*Public getter methods to get Game Name,Handle,Process ID,base address.*/
 LPCSTR GT_GetGameName(VOID);
@@ -237,6 +246,7 @@ static VOID GT_DoVirtualKeyPress(INT, INT, INT);
 static BOOL CALLBACK GT_EnumAllWindows(HWND, LPARAM);
 static BOOL GT_IsPrivateMethod(BOOL, LPCSTR, INT);
 static LPCSTR GT_BoolAlpha(BOOL);
+static VOID GT_GetValueType(LPVOID,PSIZE_T,LPCSTR);
 
 /*Private core method for injecting shell.*/
 static LPVOID GT_InjectShell(LPVOID,LPCVOID, SIZE_T,GT_SHELL,GT_OPCODE);
